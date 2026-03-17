@@ -99,17 +99,17 @@ erDiagram
         int id PK
         string username
         string email
-        boolean is_admin
         string password_hash
+        boolean is_admin
         timestamp created_at
     }
 
     paste {
         string id PK
+        int user_id FK
         string title
         string body
         string encrypted_paste_key
-        int created_by_id FK
         timestamp created_at
     }
 
