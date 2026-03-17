@@ -32,14 +32,14 @@ go run ./cmd/server
 
 ```
 ├── cmd/server/main.go          # Application entry point
+├── Dockerfile                  # Multi-stage production build
 ├── docs/                       # Project documentation
 ├── internal/
-│   ├── db/                     # SQLC generated code (do not edit)
+│   ├── db/
+│   │   ├── migrations/         # DB table schemas, used by golang-migrate
+│   │   └── queries/            # SQLC query definitions (source of truth for internal/db/)
 │   ├── errors/                 # Sentinel error definitions
 │   └── handlers/               # HTTP handlers
-├── sql/
-│   ├── migrations/             # DB table schemas, used by golang-migrate
-│   └── queries/                # SQLC query definitions (source of truth for internal/db/)
 ├── static/                     # Client-side assets (CSS, JS, images)
 ├── templates/
 │   ├── pages/                  # Full page templates
