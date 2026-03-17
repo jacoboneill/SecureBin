@@ -24,3 +24,6 @@ go.work.sum
 
 # db
 *.db
+
+# javascript
+package-lock.json
