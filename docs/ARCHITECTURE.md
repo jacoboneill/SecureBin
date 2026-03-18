@@ -35,11 +35,9 @@ Development is tracked using GitHub Issues and follows a docs-first TDD workflow
 │   │   ├── migrations/         # DB table schemas, used by golang-migrate
 │   │   └── queries/            # SQLC query definitions (source of truth for internal/db/)
 │   ├── errors/                 # Sentinel error definitions
+│   ├── templates/              # templ components and generated Go code
 │   └── handlers/               # HTTP handlers
 ├── static/                     # Client-side assets (CSS, JS, images)
-├── templates/
-│   ├── pages/                  # Full page templates
-│   └── fragments/              # HTMX partial responses
 ├── sqlc.yaml                   # SQLC configuration
 ├── go.mod
 └── go.sum
@@ -159,43 +157,40 @@ Handlers are tested using integration tests with an in-memory SQLite database. A
 
 # Template Organisation
 
-Templates use [templ](https://github.com/a-h/templ), a type-safe HTML templating language for go. Templ files (`.templ`) compile into Go functions, providing compile-time type checking and IDE support.
+Templates use [templ](https://github.com/a-h/templ), a type-safe HTML templating language for Go. Templ files (`.templ`) compile into Go functions, providing compile-time type checking and IDE support. Generated `_templ.go` files live alongside their `.templ` source and are committed to version control. Regenerate with `templ generate`.
 
-- `templates/pages/` - full HTML page components served by `Page` handlers
-- `templates/fragments/` - partial HTML components served by `Handle` handlers, swapped into the page by HTMX
+All templates live in a single `internal/templates/` package. File names encode the template type via suffix:
+
+- `*.page.templ` — full HTML page components served by `Page` handlers
+- `*.frag.templ` — partial HTML components served by `Handle` handlers, swapped into the page by HTMX
 
 ```
-templates/
-├── pages/
-│   ├── base.templ
-│   ├── index.templ
-│   ├── login.templ
-│   ├── new_paste.templ
-│   └── ...
-└── fragments/
-    ├── login_callback.templ
-    ├── create_paste_callback.templ
-    └── ...
+internal/templates/
+├── base.page.templ
+├── index.page.templ
+├── login.page.templ
+├── login_callback.frag.templ
+├── new_paste.page.templ
+├── create_paste.frag.templ
+└── ...
 ```
 
-`base.templ` defines a shared layout component that page components wrap themselves with. Fragment components are standalone, they return only the HTML snippet that HTMX swaps into an existing page.
+`base.page.templ` defines a shared layout component that page components wrap themselves with. Fragment components are standalone — they return only the HTML snippet that HTMX swaps into an existing page.
 
 Templates are called directly from handlers as typed Go functions:
 
 ```go
 // Page handler
 func (h *Handler) PageLogin(w http.ResponseWriter, r *http.Request) {
-    pages.Login("").Render(r.Context(), w)
+    templates.LoginPage("").Render(r.Context(), w)
 }
 
 // Action handler returning a fragment
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
     // ... validate login ...
-    fragments.LoginCallback("invalid username or password").Render(r.Context(), w)
+    templates.LoginCallbackFrag("invalid username or password").Render(r.Context(), w)
 }
 ```
-
-Generated `_templ.go` files are committed to version control. Regenerate with `templ generate`.
 
 # Error Handling
 
@@ -226,7 +221,7 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
     if err != nil {
         if errors.Is(err, sql.ErrNoRows) {
             slog.Warn("login failed", "username", username)
-            h.fragments.loginCallback.Execute(w, map[string]string{"Error": "invalid username or password"})
+            templates.LoginCallbackFrag("invalid username or password").Render(ctx, w)
             return
         }
         slog.Error("database error", "error", err)
