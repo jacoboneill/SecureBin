@@ -1,6 +1,6 @@
 .PHONY: clean install test test-go test-js build build-docker dev
 
-REQUIRED_BINS := go npm docker
+REQUIRED_BINS := go npm docker sqlc templ
 $(foreach bin,$(REQUIRED_BINS),\
   $(if $(shell command -v $(bin) 2>/dev/null),,\
     $(error "$(bin) is not installed. Please install it before running make")))
@@ -26,6 +26,8 @@ test-js: static/js/node_modules
 
 build: test
 	mkdir -p $(DIST_DIR)
+	sqlc generate
+	templ generate
 	CGO_ENABLED=0 go build -o $(GO_BIN) ./cmd/server/.
 
 build-docker: test
