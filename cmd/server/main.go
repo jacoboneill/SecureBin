@@ -2,17 +2,21 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
+
+	"github.com/jacoboneill/SecureBin/internal/handlers"
 )
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Hello, world!")
-	})
+	h := handlers.New()
 
-	const addr = ":8080"
-	log.Printf("listening on %s", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	const port = 8080
+
+	slog.Info("server started", "port", port)
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), h.NewRouter()); err != nil {
+		slog.Error("server failed", "err", err)
+		os.Exit(1)
+	}
 }
