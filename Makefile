@@ -1,37 +1,59 @@
-.PHONY: clean install test test-go test-js build build-docker dev
+.PHONY: clean build build/docker build/templ build/sqlc build/go test test/go test/js dev dev/templ dev/server
 
-REQUIRED_BINS := go npm docker sqlc templ
-$(foreach bin,$(REQUIRED_BINS),\
-  $(if $(shell command -v $(bin) 2>/dev/null),,\
-    $(error "$(bin) is not installed. Please install it before running make")))
+IN_DIR = ./cmd/server/.
+OUT_DIR ?= dist
+OUT_BIN = $(OUT_DIR)/securebin
 
-# Directories
-DIST_DIR := dist
-GO_BIN := $(DIST_DIR)/securebin
-
+# Clean
 clean:
-	rm -rf $(DIST_DIR)
-	rm -rf static/js/node_modules
+	rm -rf $(OUT_DIR) tmp static/js/node_modules
 
+# Install deps
 static/js/node_modules: static/js/package.json
 	cd static/js && npm install
 
-test: test-go test-js
+# Build
 
-test-go:
-	go test ./...
+build: test build/templ build/sqlc build/go
 
-test-js: static/js/node_modules
-	cd static/js && npm run test
-
-build: test
-	mkdir -p $(DIST_DIR)
-	sqlc generate
-	templ generate
-	CGO_ENABLED=0 go build -o $(GO_BIN) ./cmd/server/.
-
-build-docker: test
+build/docker:
 	docker build -t securebin .
 
+build/templ:
+	go run github.com/a-h/templ/cmd/templ@latest generate
+
+build/sqlc:
+	go run github.com/sqlc-dev/sqlc/cmd/sqlc@latest generate
+
+build/go:
+	mkdir -p $(OUT_DIR)
+	CGO_ENABLED=0 go build -o $(OUT_BIN) $(IN_DIR)
+
+# Test
+test:
+	@make -j2 test/go test/js
+
+test/go:
+	go test ./...
+
+test/js: static/js/node_modules
+	cd static/js && npm run test
+
+# Dev (Server runs on localhost:7331)
 dev:
-	air
+	@make -j2 dev/templ dev/server
+
+dev/templ:
+	go run github.com/a-h/templ/cmd/templ@latest \
+		generate --watch \
+		--proxy="http://localhost:8080" \
+		--open-browser=false
+
+dev/server:
+	go run github.com/air-verse/air@latest \
+		--build.cmd "make build/sqlc && make build/go OUT_DIR=tmp" \
+		--build.bin "tmp/securebin" \
+		--build.include_ext "go,css,js,sql" \
+		--build.exclude_regex "_templ\\.go" \
+		--build.exclude_dir "tmp" \
+		--misc.clean_on_exit true
