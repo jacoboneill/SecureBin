@@ -1,0 +1,57 @@
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100svh;
+  width: 100svw;
+
+  h1 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  form {
+    background-color: var(--card);
+    border-radius: 0.5rem;
+    padding: 5rem 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background-color: var(--card);
+      border: 1px solid var(--foreground);
+      border-radius: 0.25rem;
+      color: var(--foreground);
+
+      &:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+    }
+
+    button[type="submit"] {
+      align-self: center;
+      padding: 0.75rem 2rem;
+      background-color: var(--accent);
+      color: var(--card);
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      margin-top: 0.25rem;
+      transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+
+      &:hover {
+        color: var(--foreground);
+      }
+    }
+  }
+}
