@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -12,6 +13,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	db "github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/internal/handlers"
+	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"
 )
 
@@ -31,6 +33,23 @@ func runMigrations(conn *sql.DB, sourceURL string) error {
 	}
 
 	return nil
+}
+
+// HACK: Remove when user registration is implemented
+func seed(queries *db.Queries) {
+	const defaultPassword = "password"
+
+	// Create admin user
+	hashed_password, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
+	if err != nil {
+		slog.Error("bcrypt failed to hash password", "err", err)
+	}
+	queries.RegisterUser(context.Background(), db.RegisterUserParams{
+		Username:     "admin",
+		Email:        "admin@example.com",
+		PasswordHash: string(hashed_password),
+		IsAdmin:      true,
+	})
 }
 
 func main() {
@@ -54,9 +73,20 @@ func main() {
 	}
 	slog.Info("migrations applied", "sourceURL", migrationSourceURL)
 
-	h := handlers.New(db.New(conn))
+	queries := db.New(conn)
+	h := handlers.New(queries)
 	mux := h.NewRouter()
 	slog.Info("router initialised")
+
+	// HACK: Remove when user registration is implemented
+	seed(queries)
+	slog.Info("new user added", "users", []struct {
+		Username string
+		Email    string
+		Password string
+	}{
+		{"admin", "admin@example.com", "password"},
+	})
 
 	slog.Info("server started", "port", port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err != nil {

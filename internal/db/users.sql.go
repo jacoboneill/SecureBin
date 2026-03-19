@@ -10,13 +10,7 @@ import (
 )
 
 const getUserByEmailOrUsername = `-- name: GetUserByEmailOrUsername :one
-SELECT
-  id, username, email, password_hash, is_admin, created_at
-FROM
-  users
-WHERE
-  email = ?
-  OR username = ?
+SELECT id, username, email, password_hash, is_admin, created_at FROM users WHERE email = ? OR username = ?
 `
 
 type GetUserByEmailOrUsernameParams struct {
@@ -26,6 +20,38 @@ type GetUserByEmailOrUsernameParams struct {
 
 func (q *Queries) GetUserByEmailOrUsername(ctx context.Context, arg GetUserByEmailOrUsernameParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmailOrUsername, arg.Email, arg.Username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.IsAdmin,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const registerUser = `-- name: RegisterUser :one
+INSERT INTO users (username, email, password_hash, is_admin)
+VALUES (?, ?, ?, ?)
+RETURNING id, username, email, password_hash, is_admin, created_at
+`
+
+type RegisterUserParams struct {
+	Username     string
+	Email        string
+	PasswordHash string
+	IsAdmin      bool
+}
+
+func (q *Queries) RegisterUser(ctx context.Context, arg RegisterUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, registerUser,
+		arg.Username,
+		arg.Email,
+		arg.PasswordHash,
+		arg.IsAdmin,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
