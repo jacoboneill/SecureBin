@@ -3,7 +3,7 @@ CREATE TABLE users (
   username TEXT NOT NULL,
   email TEXT NOT NULL,
   password_hash TEXT NOT NULL,
-  is_admin BOOLEAN DEFAULT false,
+  is_admin BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

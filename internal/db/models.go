@@ -22,6 +22,6 @@ type User struct {
 	Username     string
 	Email        string
 	PasswordHash string
-	IsAdmin      sql.NullBool
+	IsAdmin      bool
 	CreatedAt    sql.NullTime
 }
