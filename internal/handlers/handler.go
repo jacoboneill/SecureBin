@@ -3,30 +3,25 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/static"
-	// "github.com/jacoboneill/SecureBin/internal/db"
 )
 
-// type Handler struct {
-// 	queries *db.Queries
-// }
+type Handler struct {
+	queries *db.Queries
+}
 
-// func New(queries *db.Queries) *Handler {
-// 	return &Handler{
-// 		queries: queries,
-// 	}
-// }
-
-type Handler struct{}
-
-func New() *Handler {
-	return &Handler{}
+func New(queries *db.Queries) *Handler {
+	return &Handler{
+		queries: queries,
+	}
 }
 
 func (h *Handler) NewRouter() http.Handler {
 	mux := http.NewServeMux()
 
 	// Pages
+	mux.HandleFunc("GET /", h.PageFeed)
 	mux.HandleFunc("GET /login", h.PageLogin)
 
 	// Static
