@@ -1,0 +1,22 @@
+package templates
+
+import "fmt"
+
+templ Base(title, custom_styles string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<title>SecureBin - { title }</title>
+			<link rel="stylesheet" href="/static/css/reset.css"/>
+			<link rel="stylesheet" href="/static/css/styles.css"/>
+			<link rel="stylesheet" href={ fmt.Sprintf("/static/css/%s", custom_styles) }/>
+		</head>
+		<body>
+			<main>
+				{ children... }
+			</main>
+			<script src="https://four.htmx.org/js/htmx.js"></script>
+		</body>
+	</html>
+}
