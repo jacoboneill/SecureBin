@@ -27,6 +27,7 @@ build/sqlc:
 
 build/go:
 	mkdir -p $(OUT_DIR)
+	go mod tidy
 	CGO_ENABLED=0 go build -o $(OUT_BIN) $(IN_DIR)
 
 # Test
