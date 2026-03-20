@@ -41,7 +41,7 @@ func Login(errMsg string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Login</h1><form hx-post=\"/login\" hx-target=\"#alert\"><div id=\"alert\"></div><div><label for=\"username\" class=\"sr-only\">Username or Email</label> <input type=\"text\" id=\"username\" name=\"username\" placeholder=\"Username or Email\" required></div><div><label for=\"password\" class=\"sr-only\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" placeholder=\"Password\" required></div><button type=\"submit\">Login</button></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Login</h1><form hx-post=\"/login\" hx-target=\"#alert\"><div><label for=\"username\" class=\"sr-only\">Username or Email</label> <input type=\"text\" id=\"username\" name=\"username\" placeholder=\"Username or Email\" required></div><div><label for=\"password\" class=\"sr-only\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" placeholder=\"Password\" required></div><button type=\"submit\">Login</button><div id=\"alert\"></div></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
