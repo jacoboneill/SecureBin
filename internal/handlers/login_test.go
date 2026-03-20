@@ -25,22 +25,52 @@ func TestHandleLogin(t *testing.T) {
 	queries, _ := testutil.SetupTestDB(t)
 	h := New(queries)
 
-	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	h.queries.RegisterUser(context.Background(), db.RegisterUserParams{
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := h.queries.RegisterUser(context.Background(), db.RegisterUserParams{
 		Username:     username,
 		Email:        email,
 		PasswordHash: string(passwordHash),
 		IsAdmin:      isAdmin,
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 
-	tests := []struct {
+	requestTests := []struct {
+		name           string
+		isHTMX         bool
+		expectedStatus int
+	}{
+		{"htmx request returns partial", true, http.StatusOK},
+		{"non-htmx request returns error", false, http.StatusBadRequest},
+	}
+
+	formTests := []struct {
 		name           string
 		form           map[string]string
 		expectedStatus int
 	}{
 		{
-			"invalid form input",
+			"invalid blank form input",
 			map[string]string{},
+			http.StatusUnauthorized,
+		},
+		{
+			"invalid partial username form input",
+			map[string]string{"username": username},
+			http.StatusUnauthorized,
+		},
+		{
+			"invalid partial email form input",
+			map[string]string{"username": email},
+			http.StatusUnauthorized,
+		},
+		{
+			"invalid partial password form input",
+			map[string]string{"password": password},
 			http.StatusUnauthorized,
 		},
 		{
@@ -75,7 +105,24 @@ func TestHandleLogin(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for _, tt := range requestTests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(url.Values{"username": {username}, "password": {password}}.Encode()))
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			if tt.isHTMX {
+				r.Header.Set("HX-Request", "true")
+			}
+
+			w := httptest.NewRecorder()
+			h.NewRouter().ServeHTTP(w, r)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+		})
+	}
+
+	for _, tt := range formTests {
 		t.Run(tt.name, func(t *testing.T) {
 			form := url.Values{}
 			for k, val := range tt.form {
@@ -84,6 +131,7 @@ func TestHandleLogin(t *testing.T) {
 
 			r := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			r.Header.Set("HX-Request", "true")
 
 			w := httptest.NewRecorder()
 			h.HandleLogin(w, r)
