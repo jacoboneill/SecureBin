@@ -28,6 +28,13 @@ func (h *Handler) RenderTemplate(w http.ResponseWriter, r *http.Request, compone
 }
 
 func (h *Handler) PageLogin(w http.ResponseWriter, r *http.Request) {
+	if cookie, err := r.Cookie("session"); err == nil {
+		if _, err := h.queries.GetSession(r.Context(), cookie.Value); err == nil {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+	}
+
 	h.RenderTemplate(w, r, templates.Login(""), http.StatusOK)
 }
 
