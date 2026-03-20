@@ -10,16 +10,11 @@ import (
 )
 
 const getUserByEmailOrUsername = `-- name: GetUserByEmailOrUsername :one
-SELECT id, username, email, password_hash, is_admin, created_at FROM users WHERE email = ? OR username = ?
+SELECT id, username, email, password_hash, is_admin, created_at FROM users WHERE email = ?1 OR username = ?1
 `
 
-type GetUserByEmailOrUsernameParams struct {
-	Email    string
-	Username string
-}
-
-func (q *Queries) GetUserByEmailOrUsername(ctx context.Context, arg GetUserByEmailOrUsernameParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmailOrUsername, arg.Email, arg.Username)
+func (q *Queries) GetUserByEmailOrUsername(ctx context.Context, identifier string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmailOrUsername, identifier)
 	var i User
 	err := row.Scan(
 		&i.ID,
