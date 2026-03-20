@@ -111,7 +111,14 @@ erDiagram
         timestamp created_at
     }
 
+    session {
+        string id PK
+        int user_id FK
+        timestamp created_at
+    }
+
     user ||--o{ paste : has
+    user ||--|{ session : has
 ```
 
 # Handler Convention

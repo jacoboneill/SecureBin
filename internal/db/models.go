@@ -6,6 +6,7 @@ package db
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Paste struct {
@@ -14,7 +15,13 @@ type Paste struct {
 	Title             string
 	Body              string
 	EncryptedPasteKey string
-	CreatedAt         sql.NullTime
+	CreatedAt         time.Time
+}
+
+type Session struct {
+	ID        string
+	UserID    int64
+	CreatedAt time.Time
 }
 
 type User struct {
@@ -23,5 +30,5 @@ type User struct {
 	Email        string
 	PasswordHash string
 	IsAdmin      bool
-	CreatedAt    sql.NullTime
+	CreatedAt    time.Time
 }
