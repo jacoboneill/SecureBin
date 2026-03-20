@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	// "log/slog"
+	"fmt"
 	"net/http"
 )
 
 func (h *Handler) PageFeed(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	// HACK: Implement Feed page
+	fmt.Fprint(w, "TODO: feed page")
 }
