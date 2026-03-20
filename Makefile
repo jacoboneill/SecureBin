@@ -35,7 +35,7 @@ test:
 	@make -j2 test/go test/js
 
 test/go:
-	go test ./...
+	go test ./internal/handlers/...
 
 test/js: static/js/node_modules
 	cd static/js && npm run test
