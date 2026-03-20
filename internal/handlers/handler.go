@@ -24,6 +24,9 @@ func (h *Handler) NewRouter() http.Handler {
 	mux.HandleFunc("GET /", h.PageFeed)
 	mux.HandleFunc("GET /login", h.PageLogin)
 
+	// Actions
+	mux.HandleFunc("POST /login", h.HandleLogin)
+
 	// Static
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
 

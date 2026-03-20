@@ -12,6 +12,7 @@ main {
   }
 
   form {
+    position: relative;
     background-color: var(--card);
     border-radius: 0.5rem;
     padding: 5rem 2rem;
@@ -51,6 +52,19 @@ main {
 
       &:hover {
         color: var(--foreground);
+      }
+    }
+
+    #alert {
+      position: absolute;
+      bottom: 1rem;
+      left: 0;
+      right: 0;
+
+      p {
+        text-align: center;
+        color: #f38ba8;
+        font-size: 0.875rem;
       }
     }
   }
