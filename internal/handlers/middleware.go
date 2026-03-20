@@ -3,8 +3,9 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
+
+	"github.com/jacoboneill/SecureBin/internal/db"
 )
 
 type contextKey string
@@ -25,16 +26,17 @@ func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
 
 func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("session")
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
+		getSession := func(r *http.Request) (db.Session, error) {
+			cookie, err := r.Cookie("session")
+			if err != nil {
+				return db.Session{}, err
+			}
+			return h.queries.GetSession(r.Context(), cookie.Value)
 		}
 
-		session, err := h.queries.GetSession(r.Context(), cookie.Value)
+		session, err := getSession(r)
 		if err != nil {
-			slog.Error("failed to retrieve session from database", "err", err)
-			http.Error(w, "something went wrong", http.StatusInternalServerError)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
