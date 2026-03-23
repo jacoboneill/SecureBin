@@ -8,6 +8,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jacoboneill/SecureBin/internal/db"
+	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"
 )
 
@@ -40,4 +41,25 @@ func SetupTestDB(t *testing.T) (*db.Queries, *sql.DB) {
 	}
 
 	return db.New(conn), conn
+}
+
+func SeedUser(t *testing.T, q *db.Queries) db.User {
+	const defaultPassword = "password"
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
+	if err != nil {
+		t.Fatal("bcrypt failed to hash password")
+	}
+
+	user, err := q.RegisterUser(t.Context(), db.RegisterUserParams{
+		Username:     "admin",
+		Email:        "admin@example.com",
+		PasswordHash: string(hashedPassword),
+		IsAdmin:      true,
+	})
+	if err != nil {
+		t.Fatalf("error on user creation %q", err)
+	}
+
+	return user
 }
