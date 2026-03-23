@@ -19,7 +19,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description           |
 | ------ | --------------------- |
-| `200`  | Renders `index.html`  |
+| `200`  | Renders `Feed` page   |
 | `500`  | Internal server error |
 
 ### `GET /{username}`
@@ -36,7 +36,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description            |
 | ------ | ---------------------- |
-| `200`  | Renders `account.html` |
+| `200`  | Renders `Account` page |
 | `404`  | User not found         |
 | `500`  | Internal server error  |
 
@@ -54,7 +54,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description           |
 | ------ | --------------------- |
-| `200`  | Renders `paste.html`  |
+| `200`  | Renders `Paste` page  |
 | `404`  | Paste not found       |
 | `500`  | Internal server error |
 
@@ -66,8 +66,8 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                               |
 | ------ | ----------------------------------------- |
-| `200`  | Renders `new_paste.html`                  |
-| `302`  | Redirect to `/login` if not authenticated |
+| `200`  | Renders `NewPaste` page                   |
+| `303`  | Redirect to `/login` if not authenticated |
 | `500`  | Internal server error                     |
 
 ### `GET /login`
@@ -78,8 +78,8 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                      |
 | ------ | -------------------------------- |
-| `200`  | Renders `login.html`             |
-| `302`  | Redirect to `/` if authenticated |
+| `200`  | Renders `Login` page             |
+| `303`  | Redirect to `/` if authenticated |
 | `500`  | Internal server error            |
 
 ### `GET /admin`
@@ -90,8 +90,8 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                               |
 | ------ | ----------------------------------------- |
-| `200`  | Renders `admin.html`                      |
-| `302`  | Redirect to `/login` if not authenticated |
+| `200`  | Renders `Admin` page                      |
+| `303`  | Redirect to `/login` if not authenticated |
 | `403`  | User is not admin                         |
 | `500`  | Internal server error                     |
 
@@ -109,8 +109,8 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                               |
 | ------ | ----------------------------------------- |
-| `200`  | Renders `account_manager.html`            |
-| `302`  | Redirect to `/login` if not authenticated |
+| `200`  | Renders `AccountManager` page             |
+| `303`  | Redirect to `/login` if not authenticated |
 | `403`  | User is not admin                         |
 | `404`  | `username` not found                      |
 | `500`  | Internal server error                     |
@@ -131,7 +131,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                  |
 | ------ | ---------------------------- |
-| `200`  | Returns `feed.html` fragment |
+| `200`  | Returns `FeedList` fragment   |
 | `204`  | No more pastes to load       |
 | `400`  | Request was not HTMX         |
 | `500`  | Internal server error        |
@@ -152,7 +152,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                                   |
 | ------ | --------------------------------------------- |
-| `200`  | Returns `create_paste_callback.html` fragment |
+| `200`  | Returns `CreatePasteCallback` fragment         |
 | `400`  | Request was not HTMX                          |
 | `401`  | User not authenticated                        |
 | `500`  | Internal server error                         |
@@ -179,7 +179,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                                   |
 | ------ | --------------------------------------------- |
-| `200`  | Returns `update_paste_callback.html` fragment |
+| `200`  | Returns `UpdatePasteCallback` fragment         |
 | `400`  | Request was not HTMX                          |
 | `401`  | User not authenticated                        |
 | `403`  | User not authorized to edit paste             |
@@ -200,7 +200,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                                   |
 | ------ | --------------------------------------------- |
-| `200`  | Returns `delete_paste_callback.html` fragment |
+| `200`  | Returns `DeletePasteCallback` fragment         |
 | `400`  | Request was not HTMX                          |
 | `401`  | User not authenticated                        |
 | `403`  | User not authorized to delete paste           |
@@ -224,7 +224,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 | ------ | ------------------------------------------------------------ |
 | `200`  | Success. Redirects to `/` via `HX-Redirect` header           |
 | `400`  | Request was not HTMX                                         |
-| `422`  | Returns `login_callback.html` fragment with validation error |
+| `401`  | Returns `LoginCallback` fragment with validation error       |
 | `500`  | Internal server error                                        |
 
 ### `POST /logout`
@@ -255,7 +255,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                                    |
 | ------ | ---------------------------------------------- |
-| `200`  | Returns `register_user_callback.html` fragment |
+| `200`  | Returns `RegisterUserCallback` fragment         |
 | `400`  | Request was not HTMX                           |
 | `401`  | User not authenticated                         |
 | `403`  | User not authorized to create a new user       |
@@ -277,7 +277,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                                     |
 | ------ | ----------------------------------------------- |
-| `200`  | Returns `reset_password_callback.html` fragment |
+| `200`  | Returns `ResetPasswordCallback` fragment         |
 | `400`  | Request was not HTMX                            |
 | `401`  | User not authenticated                          |
 | `403`  | User not authorized to reset password           |
@@ -299,7 +299,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                                  |
 | ------ | -------------------------------------------- |
-| `200`  | Returns `reset_email_callback.html` fragment |
+| `200`  | Returns `ResetEmailCallback` fragment         |
 | `400`  | Request was not HTMX                         |
 | `401`  | User not authenticated                       |
 | `403`  | User not authorized to reset email           |
@@ -331,6 +331,6 @@ Middleware is applied innermost-first. The rightmost wrapper runs first. Availab
 | Name    | Description                                                                  | Signature                                 |
 | ------- | ---------------------------------------------------------------------------- | ----------------------------------------- |
 | `log`   | Wraps the entire mux. Logs method, path, and status via `slog`               | `func(http.Handler) http.Handler`         |
-| `auth`  | Checks session cookie, returns `401` if absent. Sets user on request context | `func(http.HandlerFunc) http.HandlerFunc` |
+| `auth`  | Checks session cookie, redirects to `/login` (`303`) if absent. Sets user on request context | `func(http.HandlerFunc) http.HandlerFunc` |
 | `admin` | Checks user has admin role, returns `403` if not. Must be used after `auth`  | `func(http.HandlerFunc) http.HandlerFunc` |
 | `htmx`  | Checks `HX-Request` header, returns 400 if absent                            | `func(http.HandlerFunc) http.HandlerFunc` |

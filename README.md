@@ -38,12 +38,10 @@ go run ./cmd/server
 │   ├── db/
 │   │   ├── migrations/         # DB table schemas, used by golang-migrate
 │   │   └── queries/            # SQLC query definitions (source of truth for internal/db/)
-│   ├── errors/                 # Sentinel error definitions
+│   ├── templates/              # templ components and generated Go code
+│   ├── testutil/               # utilities for tests
 │   └── handlers/               # HTTP handlers
 ├── static/                     # Client-side assets (CSS, JS, images)
-├── templates/
-│   ├── pages/                  # Full page templates
-│   └── fragments/              # HTMX partial responses
 ├── sqlc.yaml                   # SQLC configuration
 ├── go.mod
 └── go.sum

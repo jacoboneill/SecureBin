@@ -4,12 +4,12 @@
 
 # Technology Stack
 
-The server is written in [Go](https://go.dev/) using the standard library's [`net/http`](https://pkg.go.dev/net/http) package with no framework. Templates are rendered server-side using the [`html/template`](https://pkg.go.dev/html/template) package, with [HTMX](https://four.htmx.org/) handling dynamic interactions. HTMX v4 is used over the stable v2 release. Client-side encryption uses the [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API) for _AES-256-GCM_ encryption and PBKDF2 key derivation. [SQLite](https://sqlite.org/) for the database, accessed via [SQLC](https://sqlc.dev/) for type-safe query generation and [golang-migrate](https://pkg.go.dev/github.com/golang-migrate/migrate/v4) for schema migrations. Authentication uses [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt) password hashing and cookie-based sessions. The application is containerised with a multi-stage [Docker](https://www.docker.com/) build and uses [GitHub Actions](https://github.com/features/actions) for CI.
+The server is written in [Go](https://go.dev/) using the standard library's [`net/http`](https://pkg.go.dev/net/http) package with no framework. Templates are rendered server-side using the [`templ`](https://github.com/a-h/templ) package, with [HTMX](https://four.htmx.org/) handling dynamic interactions. HTMX v4 is used over the stable v2 release. Client-side encryption uses the [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API) for _AES-256-GCM_ encryption and PBKDF2 key derivation. [SQLite](https://sqlite.org/) for the database, accessed via [SQLC](https://sqlc.dev/) for type-safe query generation and [golang-migrate](https://pkg.go.dev/github.com/golang-migrate/migrate/v4) for schema migrations. Authentication uses [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt) password hashing and cookie-based sessions. The application is containerised with a multi-stage [Docker](https://www.docker.com/) build and uses [GitHub Actions](https://github.com/features/actions) for CI.
 
 | Layer                  | Technology                                                                                      |
 | ---------------------- | ----------------------------------------------------------------------------------------------- |
 | Language               | [Go](https://go.dev/)                                                                           |
-| Templating             | Go [`html/template`](https://pkg.go.dev/html/template)                                          |
+| Templating             | [templ](https://github.com/a-h/templ)                                                           |
 | Interactivity          | [HTMX v4](https://four.htmx.org/)                                                               |
 | Client-side encryption | WebCrypto API (AES-256-GCM, PBKDF2)                                                             |
 | Database               | [SQLite](https://sqlite.org/) via [`modernc.org/sqlite`](https://pkg.go.dev/modernc.org/sqlite) |
@@ -34,12 +34,10 @@ Development is tracked using GitHub Issues and follows a docs-first TDD workflow
 │   ├── db/
 │   │   ├── migrations/         # DB table schemas, used by golang-migrate
 │   │   └── queries/            # SQLC query definitions (source of truth for internal/db/)
-│   ├── errors/                 # Sentinel error definitions
+│   ├── templates/              # templ components and generated Go code
+│   ├── testutil/               # utilities for tests
 │   └── handlers/               # HTTP handlers
 ├── static/                     # Client-side assets (CSS, JS, images)
-├── templates/
-│   ├── pages/                  # Full page templates
-│   └── fragments/              # HTMX partial responses
 ├── sqlc.yaml                   # SQLC configuration
 ├── go.mod
 └── go.sum
@@ -113,29 +111,28 @@ erDiagram
         timestamp created_at
     }
 
+    session {
+        string id PK
+        int user_id FK
+        timestamp created_at
+    }
+
     user ||--o{ paste : has
+    user ||--|{ session : has
 ```
 
 # Handler Convention
 
-Handlers are methods on the `Handler` struct, which holds shared dependencies injected via the constructor. Templates are parsed once at startup and stored on the struct for reuse across requests
+Handlers are methods on the `Handler` struct, which holds shared dependencies injected via the constructor.
 
 ```go
 type Handler struct {
     queries *db.Queries     // SQLC Queries
-    pages *pages            // HTML Page Templates
-    fragments *fragments    // HTMX Fragment Templates
 }
 
 func New(queries *db.Queries) *Handler {
     return &Handler {
         queries: queries,
-        pages: &pages {
-            login: registerTemplate("templates/pages/base.html", "templates/pages/login.html")
-        },
-        fragments: &fragments {
-            login: registerTemplate("templates/fragments/login_callback.html")
-        }
     }
 }
 ```
@@ -163,80 +160,42 @@ func (h *Handler) NewRouter() http.Handler {
 }
 ```
 
-Handlers are tested using integration tests with an in-memory SQLite database. A shared test helper in `testhelper_test.go` sets up the database, runs migrations, and returns a `Handler` ready for testing. Tests use `httptest.NewRequest` and `httptest.NewRecorder`.
+Handlers are tested using integration tests with an in-memory SQLite database. A shared test helper in `internal/testutil/` sets up the database, runs migrations, and returns a `*db.Queries` ready for testing. Tests use `httptest.NewRequest` and `httptest.NewRecorder`.
 
 # Template Organisation
 
-Templates are split into two directories:
+Templates use [templ](https://github.com/a-h/templ), a type-safe HTML templating language for Go. Templ files (`.templ`) compile into Go functions, providing compile-time type checking and IDE support. Generated `_templ.go` files live alongside their `.templ` source and are committed to version control. Regenerate with `templ generate`.
 
-- `templates/pages/` - full HTML pages served by `Page` handlers. Each page is a complete HTML document.
-- `templates/fragments/` - partial HTML snippets served by `Handle` handlers. These are swapped into the page by HTMX without a full page reload
+All templates live in a single `internal/templates/` package. File names encode the template type via suffix:
 
-Pages use Go's `html/template` inheritance via `{{template}}` and `{{block}}` to share common base layout:
+- `*.page.templ` — full HTML page components served by `Page` handlers
+- `*.frag.templ` — partial HTML components served by `Handle` handlers, swapped into the page by HTMX
 
 ```
-templates/
-├── fragments
-│   ├── login_callback.html
-│   ├── create_paste_callback.html
-│   └── ...
-└── pages
-    ├── base.html
-    ├── index.html
-    ├── login.html
-    ├── new_paste.html
-    └── ...
+internal/templates/
+├── base.page.templ
+├── index.page.templ
+├── login.page.templ
+├── login_callback.frag.templ
+├── new_paste.page.templ
+├── create_paste.frag.templ
+└── ...
 ```
 
-`base.html` defines the common structure: HTML head, navigation, footer, HTMX and encryption script includes. Page templates extend it by filling in the content block.
-Fragment templates are standalone snippets with no layout. They're injected into an already rendered page via HTMX.
+`base.page.templ` defines a shared layout component that page components wrap themselves with. Fragment components are standalone — they return only the HTML snippet that HTMX swaps into an existing page.
 
-`registerTemplate` accepts a variadic number of paths, pages will need to include the base layout explicitly (`go doc -u ./internal/handlers registerTemplate`)
-
-# Error Handling
-
-Errors are handled at the handler level. Each handler is responsible for logging the error and returning an appropriate HTTP response. Internal errors are logged with `slog` for debugging. User facing responses reveal no implementation details to avoid attacks such as user enumeration.
-
-Sentinel errors are defined as needed in a central `internal/errors/errors.go` file. Common cases like "not found" map directly to `sql.ErrNoRows` from the standard library and don't need a custom error. Custom sentinel errors are only introduced when the application needs to express something the standard library doesn't:
+Templates are called directly from handlers as typed Go functions:
 
 ```go
-package errors
+// Page handler
+func (h *Handler) PageLogin(w http.ResponseWriter, r *http.Request) {
+    templates.Login("").Render(r.Context(), w)
+}
 
-import "errors"
-
-var (
-    ErrDuplicateEmail = errors.New("email already registered")
-    ErrInvalidInput   = errors.New("invalid input")
-)
-```
-
-Handlers check for errors and map them to HTTP responses:
-
-```go
+// Action handler returning a fragment
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
-    ctx := r.Context()
-    username := r.FormValue("username")
-    password := r.FormValue("password")
-
-    user, err := h.queries.GetUserByEmailOrUsername(ctx, username)
-    if err != nil {
-        if errors.Is(err, sql.ErrNoRows) {
-            slog.Warn("login failed", "username", username)
-            h.fragments.loginCallback.Execute(w, map[string]string{"Error": "invalid username or password"})
-            return
-        }
-        slog.Error("database error", "error", err)
-        http.Error(w, "something went wrong", http.StatusInternalServerError)
-        return
-    }
-
-    // check password with bcrypt...
+    // ... validate login ...
+    templates.LoginCallback("invalid username or password").Render(r.Context(), w)
 }
 ```
 
-Key principles:
-
-- Authentication failures (wrong password, email not found) return the same generic message to the user to prevent account enumeration
-- Database and internal errors log the detail with `slog.Error` and return a generic 500 to the user.
-- Validation errors (missing fields, invalid format) return specific feedback so the user can correct their input
-- HTMX action handlers return error fragments that swap into the form. Page handlers return a full error page.
