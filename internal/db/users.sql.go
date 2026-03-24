@@ -9,8 +9,26 @@ import (
 	"context"
 )
 
+const getUser = `-- name: GetUser :one
+SELECT id, username, email, password_hash, is_admin, created_at FROM users WHERE id = ? LIMIT 1
+`
+
+func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.IsAdmin,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getUserByEmailOrUsername = `-- name: GetUserByEmailOrUsername :one
-SELECT id, username, email, password_hash, is_admin, created_at FROM users WHERE email = ?1 OR username = ?1
+SELECT id, username, email, password_hash, is_admin, created_at FROM users WHERE email = ?1 OR username = ?1 LIMIT 1
 `
 
 func (q *Queries) GetUserByEmailOrUsername(ctx context.Context, identifier string) (User, error) {
