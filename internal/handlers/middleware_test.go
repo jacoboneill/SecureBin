@@ -107,3 +107,53 @@ func TestAuthMiddleware(t *testing.T) {
 		}
 	})
 }
+
+func TestAdmin(t *testing.T) {
+	queries, _ := testutil.SetupTestDB(t)
+	h := New(queries)
+
+	admin := testutil.SeedUser(t, queries, testutil.RegisterUserParams{
+		Username: "admin",
+		Email:    "admin@example.com",
+		Password: "password",
+		IsAdmin:  true,
+	})
+
+	nonAdmin := testutil.SeedUser(t, queries, testutil.RegisterUserParams{
+		Username: "non_admin",
+		Email:    "non_admin@example.com",
+		Password: "password",
+		IsAdmin:  false,
+	})
+
+	tests := []struct {
+		name           string
+		user           testutil.User
+		expectedStatus int
+	}{
+		{
+			"test is admin",
+			admin,
+			http.StatusOK,
+		},
+		{
+			"test is not admin",
+			nonAdmin,
+			http.StatusForbidden,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.AddCookie(&http.Cookie{Name: "session", Value: tt.user.SessionID})
+
+			h.auth(h.admin(goodNext))(w, r)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+		})
+	}
+}
