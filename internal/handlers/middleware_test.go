@@ -1,13 +1,10 @@
 package handlers
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/internal/testutil"
 )
 
@@ -63,8 +60,14 @@ func assertLoginRedirect(t testing.TB, w *httptest.ResponseRecorder) {
 
 func TestAuthMiddleware(t *testing.T) {
 	queries, _ := testutil.SetupTestDB(t)
-	user := testutil.SeedUser(t, queries)
 	h := New(queries)
+
+	user := testutil.SeedUser(t, queries, testutil.RegisterUserParams{
+		Username: "admin",
+		Email:    "admin@example.com",
+		Password: "password",
+		IsAdmin:  true,
+	})
 
 	t.Run("test no cookie", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -86,20 +89,9 @@ func TestAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("test valid cookie", func(t *testing.T) {
-		token := make([]byte, 32)
-		rand.Read(token)
-
-		session, err := h.queries.CreateSession(t.Context(), db.CreateSessionParams{
-			ID:     base64.URLEncoding.EncodeToString(token),
-			UserID: user.ID,
-		})
-		if err != nil {
-			t.Fatalf("failed to create new session %q", err)
-		}
-
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		r.AddCookie(&http.Cookie{Name: "session", Value: session.ID})
+		r.AddCookie(&http.Cookie{Name: "session", Value: user.SessionID})
 
 		h.auth(goodNext)(w, r)
 		resp := w.Result()

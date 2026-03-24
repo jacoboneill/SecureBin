@@ -1,7 +1,9 @@
 package testutil
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
 	"testing"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -43,23 +45,45 @@ func SetupTestDB(t *testing.T) (*db.Queries, *sql.DB) {
 	return db.New(conn), conn
 }
 
-func SeedUser(t *testing.T, q *db.Queries) db.User {
-	const defaultPassword = "password"
+type RegisterUserParams struct {
+	Username string
+	Email    string
+	Password string
+	IsAdmin  bool
+}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
+type User struct {
+	db.User
+	SessionID string
+}
+
+func SeedUser(t *testing.T, q *db.Queries, registerUserParams RegisterUserParams) User {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerUserParams.Password), bcrypt.DefaultCost)
 	if err != nil {
 		t.Fatal("bcrypt failed to hash password")
 	}
 
 	user, err := q.RegisterUser(t.Context(), db.RegisterUserParams{
-		Username:     "admin",
-		Email:        "admin@example.com",
+		Username:     registerUserParams.Username,
+		Email:        registerUserParams.Email,
 		PasswordHash: string(hashedPassword),
-		IsAdmin:      true,
+		IsAdmin:      registerUserParams.IsAdmin,
 	})
 	if err != nil {
 		t.Fatalf("error on user creation %q", err)
 	}
 
-	return user
+	token := make([]byte, 32)
+	rand.Read(token)
+	sessionID := base64.URLEncoding.EncodeToString(token)
+
+	session, err := q.CreateSession(t.Context(), db.CreateSessionParams{ID: sessionID, UserID: user.ID})
+	if err != nil {
+		t.Fatalf("error on session creation %q", err)
+	}
+
+	return User{
+		User:      user,
+		SessionID: session.ID,
+	}
 }
