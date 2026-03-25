@@ -1,0 +1,9 @@
+package templates
+
+templ RegisterCallback(msg string, isError bool) {
+	if isError {
+		<p class="text-red-500 text-sm text-center">{ msg }</p>
+	} else {
+		<p class="text-green-600 text-sm text-center">{ msg }</p>
+	}
+}

@@ -26,6 +26,7 @@ func (h *Handler) NewRouter() http.Handler {
 	// Pages
 	mux.HandleFunc("GET /", h.PageFeed)
 	mux.HandleFunc("GET /login", h.PageLogin)
+	mux.HandleFunc("GET /admin/register", h.auth(h.admin(h.PageRegister)))
 
 	// Actions
 	mux.HandleFunc("POST /login", h.htmx(h.HandleLogin))
