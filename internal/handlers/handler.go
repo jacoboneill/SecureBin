@@ -24,7 +24,7 @@ func (h *Handler) NewRouter() http.Handler {
 	mux := http.NewServeMux()
 
 	// Pages
-	mux.HandleFunc("GET /", h.auth(h.PageFeed))
+	mux.HandleFunc("GET /", h.PageFeed)
 	mux.HandleFunc("GET /login", h.PageLogin)
 
 	// Actions
