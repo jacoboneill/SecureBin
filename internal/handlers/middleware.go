@@ -12,7 +12,7 @@ import (
 
 type contextKey string
 
-const UserIDContextKey contextKey = "userID"
+const UserIDCtxKey contextKey = "userID"
 
 func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), UserIDContextKey, session.UserID)
+		ctx := context.WithValue(r.Context(), userIDCtxKey, session.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
@@ -54,7 +54,7 @@ func (h *Handler) admin(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		ctx := r.Context()
-		userID, ok := ctx.Value(UserIDContextKey).(int64)
+		userID, ok := ctx.Value(userIDCtxKey).(int64)
 		if !ok {
 			slog.Error("failed to get user ID from context")
 			httpError()
