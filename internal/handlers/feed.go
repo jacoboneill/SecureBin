@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/jacoboneill/SecureBin/internal/templates"
 )
 
 func (h *Handler) PageFeed(w http.ResponseWriter, r *http.Request) {
 	// HACK: Implement Feed page
-	fmt.Fprint(w, "TODO: feed page")
+	h.RenderTemplate(w, r, templates.Feed(), http.StatusOK)
 }
