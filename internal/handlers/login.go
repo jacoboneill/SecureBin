@@ -1,31 +1,16 @@
 package handlers
 
 import (
-	"bytes"
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
 	"log/slog"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/internal/templates"
 	"golang.org/x/crypto/bcrypt"
 )
-
-func (h *Handler) RenderTemplate(w http.ResponseWriter, r *http.Request, component templ.Component, statusCode int) {
-	var buf bytes.Buffer
-	if err := component.Render(r.Context(), &buf); err != nil {
-		slog.Error("template failed to render", "err", err)
-		http.Error(w, "something went wrong", http.StatusInternalServerError)
-	}
-	w.WriteHeader(statusCode)
-	if _, err := buf.WriteTo(w); err != nil {
-		slog.Error("buffer failed to write to HTTP response writer", "err", err)
-		http.Error(w, "something went wrong", http.StatusInternalServerError)
-	}
-}
 
 func (h *Handler) PageLogin(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie("session"); err == nil {
