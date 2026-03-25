@@ -12,7 +12,10 @@ import (
 
 type contextKey string
 
-const UserIDCtxKey contextKey = "userID"
+const (
+	userIDCtxKey  contextKey = "userID"
+	isAdminCtxKey contextKey = "isAdmin"
+)
 
 func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -78,6 +81,6 @@ func (h *Handler) admin(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(context.WithValue(ctx, isAdminCtxKey, true)))
 	}
 }
