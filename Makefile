@@ -54,7 +54,7 @@ dev/server:
 	go run github.com/air-verse/air@latest \
 		--build.cmd "make build/go OUT_DIR=tmp" \
 		--build.bin "tmp/securebin" \
-		--build.include_ext "go,css,js,sql" \
+		--build.include_ext "go,js,sql" \
 		--build.exclude_regex "_templ\\.go" \
 		--build.exclude_dir "tmp,internal/db" \
 		--misc.clean_on_exit true

@@ -41,13 +41,36 @@ func Login(errMsg string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Login</h1><form hx-post=\"/login\" hx-target=\"#alert\"><div><label for=\"username\" class=\"sr-only\">Username or Email</label> <input type=\"text\" id=\"username\" name=\"username\" placeholder=\"Username or Email\" required></div><div><label for=\"password\" class=\"sr-only\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" placeholder=\"Password\" required></div><button type=\"submit\">Login</button><div id=\"alert\"></div></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex items-center justify-center min-h-[80vh]\"><div class=\"w-full max-w-sm\"><h1 class=\"text-2xl font-bold text-center mb-6\">Login</h1><form hx-post=\"/login\" hx-target=\"#alert\" class=\"bg-white shadow rounded-lg p-8 space-y-4\"><div><label for=\"username\" class=\"sr-only\">Username or Email</label> <input type=\"text\" id=\"username\" name=\"username\" placeholder=\"Username or Email\" required class=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"></div><div><label for=\"password\" class=\"sr-only\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" placeholder=\"Password\" required class=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent\"></div><button type=\"submit\" class=\"w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors cursor-pointer\">Login</button><div id=\"alert\" class=\"min-h-[1.25rem]\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if errMsg != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"text-red-500 text-sm text-center\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var3 string
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/login.page.templ`, Line: 20, Col: 59}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></form></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Base("Login", "login.css").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Base("Login").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

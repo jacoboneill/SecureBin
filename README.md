@@ -41,7 +41,7 @@ go run ./cmd/server
 │   ├── templates/              # templ components and generated Go code
 │   ├── testutil/               # utilities for tests
 │   └── handlers/               # HTTP handlers
-├── static/                     # Client-side assets (CSS, JS, images)
+├── static/                     # Client-side assets (JS, images)
 ├── sqlc.yaml                   # SQLC configuration
 ├── go.mod
 └── go.sum
