@@ -24,15 +24,17 @@ func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
 
 func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		getSession := func(r *http.Request) (db.Session, error) {
+		ctx := r.Context()
+
+		getSession := func() (db.Session, error) {
 			cookie, err := r.Cookie("session")
 			if err != nil {
 				return db.Session{}, err
 			}
-			return h.queries.GetSession(r.Context(), cookie.Value)
+			return h.queries.GetSession(ctx, cookie.Value)
 		}
 
-		session, err := getSession(r)
+		session, err := getSession()
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
