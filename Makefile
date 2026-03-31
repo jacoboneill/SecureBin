@@ -25,7 +25,7 @@ build/templ:
 build/sqlc:
 	go run github.com/sqlc-dev/sqlc/cmd/sqlc@latest generate
 
-build/go:
+build/go: build/sqlc build/templ
 	mkdir -p $(OUT_DIR)
 	go mod tidy
 	CGO_ENABLED=0 go build -o $(OUT_BIN) $(IN_DIR)
@@ -34,7 +34,7 @@ build/go:
 test:
 	@make -j2 test/go test/js
 
-test/go:
+test/go: build/templ build/sqlc
 	go test ./internal/handlers/...
 
 test/js: static/js/node_modules
@@ -52,9 +52,9 @@ dev/templ:
 
 dev/server:
 	go run github.com/air-verse/air@latest \
-		--build.cmd "make build/sqlc && make build/go OUT_DIR=tmp" \
+		--build.cmd "make build/go OUT_DIR=tmp" \
 		--build.bin "tmp/securebin" \
-		--build.include_ext "go,css,js,sql" \
+		--build.include_ext "go,js,sql" \
 		--build.exclude_regex "_templ\\.go" \
 		--build.exclude_dir "tmp,internal/db" \
 		--misc.clean_on_exit true

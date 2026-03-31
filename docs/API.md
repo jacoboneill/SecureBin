@@ -129,12 +129,12 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 **Responses:**
 
-| Status | Description                  |
-| ------ | ---------------------------- |
-| `200`  | Returns `FeedList` fragment   |
-| `204`  | No more pastes to load       |
-| `400`  | Request was not HTMX         |
-| `500`  | Internal server error        |
+| Status | Description                 |
+| ------ | --------------------------- |
+| `200`  | Returns `FeedList` fragment |
+| `204`  | No more pastes to load      |
+| `400`  | Request was not HTMX        |
+| `500`  | Internal server error       |
 
 ### `POST /p`
 
@@ -150,12 +150,12 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 **Responses:**
 
-| Status | Description                                   |
-| ------ | --------------------------------------------- |
-| `200`  | Returns `CreatePasteCallback` fragment         |
-| `400`  | Request was not HTMX                          |
-| `401`  | User not authenticated                        |
-| `500`  | Internal server error                         |
+| Status | Description                            |
+| ------ | -------------------------------------- |
+| `200`  | Returns `CreatePasteCallback` fragment |
+| `400`  | Request was not HTMX                   |
+| `401`  | User not authenticated                 |
+| `500`  | Internal server error                  |
 
 ### `PUT /p/{id}`
 
@@ -177,14 +177,14 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 **Responses:**
 
-| Status | Description                                   |
-| ------ | --------------------------------------------- |
-| `200`  | Returns `UpdatePasteCallback` fragment         |
-| `400`  | Request was not HTMX                          |
-| `401`  | User not authenticated                        |
-| `403`  | User not authorized to edit paste             |
-| `404`  | Paste not found                               |
-| `500`  | Internal server error                         |
+| Status | Description                            |
+| ------ | -------------------------------------- |
+| `200`  | Returns `UpdatePasteCallback` fragment |
+| `400`  | Request was not HTMX                   |
+| `401`  | User not authenticated                 |
+| `403`  | User not authorized to edit paste      |
+| `404`  | Paste not found                        |
+| `500`  | Internal server error                  |
 
 ### `DELETE /p/{id}`
 
@@ -198,14 +198,14 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 **Responses:**
 
-| Status | Description                                   |
-| ------ | --------------------------------------------- |
-| `200`  | Returns `DeletePasteCallback` fragment         |
-| `400`  | Request was not HTMX                          |
-| `401`  | User not authenticated                        |
-| `403`  | User not authorized to delete paste           |
-| `404`  | Paste not found                               |
-| `500`  | Internal server error                         |
+| Status | Description                            |
+| ------ | -------------------------------------- |
+| `200`  | Returns `DeletePasteCallback` fragment |
+| `400`  | Request was not HTMX                   |
+| `401`  | User not authenticated                 |
+| `403`  | User not authorized to delete paste    |
+| `404`  | Paste not found                        |
+| `500`  | Internal server error                  |
 
 ### `POST /login`
 
@@ -220,12 +220,12 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 **Responses:**
 
-| Status | Description                                                  |
-| ------ | ------------------------------------------------------------ |
-| `200`  | Success. Redirects to `/` via `HX-Redirect` header           |
-| `400`  | Request was not HTMX                                         |
-| `401`  | Returns `LoginCallback` fragment with validation error       |
-| `500`  | Internal server error                                        |
+| Status | Description                                            |
+| ------ | ------------------------------------------------------ |
+| `200`  | Success. Redirects to `/` via `HX-Redirect` header     |
+| `400`  | Request was not HTMX                                   |
+| `401`  | Returns `LoginCallback` fragment with validation error |
+| `500`  | Internal server error                                  |
 
 ### `POST /logout`
 
@@ -245,22 +245,23 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 **Request:** `application/x-www-form-urlencoded`
 
-| Field    | Type   | Required | Description         |
-| -------- | ------ | -------- | ------------------- |
-| email    | string | ✓        | New user's email    |
-| username | string | ✓        | New user's username |
-| password | string | ✓        | New user's password |
+| Field    | Type     | Required | Description         |
+| -------- | -------- | -------- | ------------------- |
+| email    | string   | ✓        | New user's email    |
+| username | string   | ✓        | New user's username |
+| password | string   | ✓        | New user's password |
+| isAdmin  | checkbox | ✓        | Is new user admin?  |
 
 **Responses:**
 
-| Status | Description                                    |
-| ------ | ---------------------------------------------- |
-| `200`  | Returns `RegisterUserCallback` fragment         |
-| `400`  | Request was not HTMX                           |
-| `401`  | User not authenticated                         |
-| `403`  | User not authorized to create a new user       |
-| `409`  | User with email already exists                 |
-| `500`  | Internal server error                          |
+| Status | Description                              |
+| ------ | ---------------------------------------- |
+| `200`  | Returns `RegisterUserCallback` fragment  |
+| `400`  | Request was not HTMX                     |
+| `401`  | User not authenticated                   |
+| `403`  | User not authorized to create a new user |
+| `409`  | User with email already exists           |
+| `500`  | Internal server error                    |
 
 ### `POST /admin/reset-password`
 
@@ -275,14 +276,14 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 **Responses:**
 
-| Status | Description                                     |
-| ------ | ----------------------------------------------- |
-| `200`  | Returns `ResetPasswordCallback` fragment         |
-| `400`  | Request was not HTMX                            |
-| `401`  | User not authenticated                          |
-| `403`  | User not authorized to reset password           |
-| `404`  | User not found                                  |
-| `500`  | Internal server error                           |
+| Status | Description                              |
+| ------ | ---------------------------------------- |
+| `200`  | Returns `ResetPasswordCallback` fragment |
+| `400`  | Request was not HTMX                     |
+| `401`  | User not authenticated                   |
+| `403`  | User not authorized to reset password    |
+| `404`  | User not found                           |
+| `500`  | Internal server error                    |
 
 ### `POST /admin/reset-email`
 
@@ -297,14 +298,14 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 **Responses:**
 
-| Status | Description                                  |
-| ------ | -------------------------------------------- |
-| `200`  | Returns `ResetEmailCallback` fragment         |
-| `400`  | Request was not HTMX                         |
-| `401`  | User not authenticated                       |
-| `403`  | User not authorized to reset email           |
-| `404`  | User not found                               |
-| `500`  | Internal server error                        |
+| Status | Description                           |
+| ------ | ------------------------------------- |
+| `200`  | Returns `ResetEmailCallback` fragment |
+| `400`  | Request was not HTMX                  |
+| `401`  | User not authenticated                |
+| `403`  | User not authorized to reset email    |
+| `404`  | User not found                        |
+| `500`  | Internal server error                 |
 
 # Middleware
 
@@ -328,9 +329,9 @@ func (h *Handler) NewRouter() http.Handler {
 
 Middleware is applied innermost-first. The rightmost wrapper runs first. Available middleware:
 
-| Name    | Description                                                                  | Signature                                 |
-| ------- | ---------------------------------------------------------------------------- | ----------------------------------------- |
-| `log`   | Wraps the entire mux. Logs method, path, and status via `slog`               | `func(http.Handler) http.Handler`         |
+| Name    | Description                                                                                  | Signature                                 |
+| ------- | -------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `log`   | Wraps the entire mux. Logs method, path, and status via `slog`                               | `func(http.Handler) http.Handler`         |
 | `auth`  | Checks session cookie, redirects to `/login` (`303`) if absent. Sets user on request context | `func(http.HandlerFunc) http.HandlerFunc` |
-| `admin` | Checks user has admin role, returns `403` if not. Must be used after `auth`  | `func(http.HandlerFunc) http.HandlerFunc` |
-| `htmx`  | Checks `HX-Request` header, returns 400 if absent                            | `func(http.HandlerFunc) http.HandlerFunc` |
+| `admin` | Checks user has admin role, returns `403` if not. Must be used after `auth`                  | `func(http.HandlerFunc) http.HandlerFunc` |
+| `htmx`  | Checks `HX-Request` header, returns 400 if absent                                            | `func(http.HandlerFunc) http.HandlerFunc` |

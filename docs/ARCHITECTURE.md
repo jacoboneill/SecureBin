@@ -10,6 +10,7 @@ The server is written in [Go](https://go.dev/) using the standard library's [`ne
 | ---------------------- | ----------------------------------------------------------------------------------------------- |
 | Language               | [Go](https://go.dev/)                                                                           |
 | Templating             | [templ](https://github.com/a-h/templ)                                                           |
+| Styling                | [Tailwind CSS](https://tailwindcss.com/) (CDN)                                                   |
 | Interactivity          | [HTMX v4](https://four.htmx.org/)                                                               |
 | Client-side encryption | WebCrypto API (AES-256-GCM, PBKDF2)                                                             |
 | Database               | [SQLite](https://sqlite.org/) via [`modernc.org/sqlite`](https://pkg.go.dev/modernc.org/sqlite) |
@@ -34,10 +35,11 @@ Development is tracked using GitHub Issues and follows a docs-first TDD workflow
 │   ├── db/
 │   │   ├── migrations/         # DB table schemas, used by golang-migrate
 │   │   └── queries/            # SQLC query definitions (source of truth for internal/db/)
+│   ├── contextkeys/            # typed context key constants
 │   ├── templates/              # templ components and generated Go code
 │   ├── testutil/               # utilities for tests
 │   └── handlers/               # HTTP handlers
-├── static/                     # Client-side assets (CSS, JS, images)
+├── static/                     # Client-side assets (JS, images)
 ├── sqlc.yaml                   # SQLC configuration
 ├── go.mod
 └── go.sum
@@ -174,28 +176,30 @@ All templates live in a single `internal/templates/` package. File names encode 
 ```
 internal/templates/
 ├── base.page.templ
-├── index.page.templ
+├── feed.page.templ
 ├── login.page.templ
 ├── login_callback.frag.templ
 ├── new_paste.page.templ
 ├── create_paste.frag.templ
+├── register.page.templ
+├── register_callback.frag.templ
 └── ...
 ```
 
 `base.page.templ` defines a shared layout component that page components wrap themselves with. Fragment components are standalone — they return only the HTML snippet that HTMX swaps into an existing page.
 
-Templates are called directly from handlers as typed Go functions:
+Templates are rendered via `RenderTemplate`, which resolves auth state from context (set by middleware) or falls back to a cookie/session lookup for public routes. It stores a `*db.User` on the context via `contextkeys.UserCtxKey`, which `base.page.templ` reads to render the nav bar:
 
 ```go
 // Page handler
 func (h *Handler) PageLogin(w http.ResponseWriter, r *http.Request) {
-    templates.Login("").Render(r.Context(), w)
+    h.RenderTemplate(w, r, templates.Login(""), http.StatusOK)
 }
 
 // Action handler returning a fragment
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
     // ... validate login ...
-    templates.LoginCallback("invalid username or password").Render(r.Context(), w)
+    h.RenderTemplate(w, r, templates.LoginCallback("invalid username or password"), http.StatusUnauthorized)
 }
 ```
 

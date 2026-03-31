@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
+	"log/slog"
+	"os"
 	"testing"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -13,6 +15,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"
 )
+
+func SilenceLogs() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelError,
+	})))
+}
 
 func SetupTestDB(t *testing.T) (*db.Queries, *sql.DB) {
 	t.Helper()

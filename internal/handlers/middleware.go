@@ -2,17 +2,13 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
 
+	"github.com/jacoboneill/SecureBin/internal/contextkeys"
 	"github.com/jacoboneill/SecureBin/internal/db"
 )
-
-type contextKey string
-
-const UserIDContextKey contextKey = "userID"
 
 func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -28,47 +24,41 @@ func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
 
 func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		getSession := func(r *http.Request) (db.Session, error) {
+		ctx := r.Context()
+
+		getSession := func() (db.Session, error) {
 			cookie, err := r.Cookie("session")
 			if err != nil {
 				return db.Session{}, err
 			}
-			return h.queries.GetSession(r.Context(), cookie.Value)
+			return h.queries.GetSession(ctx, cookie.Value)
 		}
 
-		session, err := getSession(r)
+		session, err := getSession()
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), UserIDContextKey, session.UserID)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		user, err := h.queries.GetUser(ctx, session.UserID)
+		if err != nil {
+			slog.Warn("user not found but session ID found", "err", err)
+			http.Error(w, "something went wrong", http.StatusInternalServerError)
+			return
+		}
+
+		next.ServeHTTP(w, r.WithContext(context.WithValue(ctx, contextkeys.UserCtxKey, &user)))
 	}
 }
 
 func (h *Handler) admin(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		httpError := func() {
-			http.Error(w, "something went wrong", http.StatusInternalServerError)
-		}
-
 		ctx := r.Context()
-		userID, ok := ctx.Value(UserIDContextKey).(int64)
-		if !ok {
-			slog.Error("failed to get user ID from context")
-			httpError()
-			return
-		}
 
-		user, err := h.queries.GetUser(ctx, userID)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				slog.Warn("user not found", "userID", userID)
-			} else {
-				slog.Warn("query failed", "query", "GetUser", "err", err)
-				httpError()
-			}
+		user, ok := ctx.Value(contextkeys.UserCtxKey).(*db.User)
+		if !ok {
+			slog.Error("user not found in context. please ensure to use auth middleware before admin")
+			http.Error(w, "something went wrong", http.StatusInternalServerError)
 			return
 		}
 

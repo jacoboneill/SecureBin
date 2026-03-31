@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,35 +8,21 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/internal/testutil"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestHandleLogin(t *testing.T) {
-	var (
-		username = "admin"
-		email    = "admin@example.com"
-		password = "password"
-		isAdmin  = true
-	)
+	user := testutil.RegisterUserParams{
+		Username: "admin",
+		Email:    "admin@example.com",
+		Password: "password",
+		IsAdmin:  true,
+	}
 
 	queries, _ := testutil.SetupTestDB(t)
 	h := New(queries)
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := h.queries.RegisterUser(context.Background(), db.RegisterUserParams{
-		Username:     username,
-		Email:        email,
-		PasswordHash: string(passwordHash),
-		IsAdmin:      isAdmin,
-	}); err != nil {
-		t.Fatal(err)
-	}
+	testutil.SeedUser(t, queries, user)
 
 	requestTests := []struct {
 		name           string
@@ -60,54 +45,54 @@ func TestHandleLogin(t *testing.T) {
 		},
 		{
 			"invalid partial username form input",
-			map[string]string{"username": username},
+			map[string]string{"username": user.Username},
 			http.StatusUnauthorized,
 		},
 		{
 			"invalid partial email form input",
-			map[string]string{"username": email},
+			map[string]string{"username": user.Email},
 			http.StatusUnauthorized,
 		},
 		{
 			"invalid partial password form input",
-			map[string]string{"password": password},
+			map[string]string{"password": user.Password},
 			http.StatusUnauthorized,
 		},
 		{
 			"valid username and password",
-			map[string]string{"username": username, "password": password},
+			map[string]string{"username": user.Username, "password": user.Password},
 			http.StatusOK,
 		},
 		{
 			"valid email and password",
-			map[string]string{"username": email, "password": password},
+			map[string]string{"username": user.Email, "password": user.Password},
 			http.StatusOK,
 		},
 		{
 			"invalid username, valid password",
-			map[string]string{"username": fmt.Sprintf("not-%s", username), "password": password},
+			map[string]string{"username": fmt.Sprintf("not-%s", user.Username), "password": user.Password},
 			http.StatusUnauthorized,
 		},
 		{
 			"invalid email, valid password",
-			map[string]string{"username": fmt.Sprintf("not-%s", email), "password": password},
+			map[string]string{"username": fmt.Sprintf("not-%s", user.Email), "password": user.Password},
 			http.StatusUnauthorized,
 		},
 		{
 			"valid username, invalid password",
-			map[string]string{"username": username, "password": fmt.Sprintf("not-%s", password)},
+			map[string]string{"username": user.Username, "password": fmt.Sprintf("not-%s", user.Password)},
 			http.StatusUnauthorized,
 		},
 		{
 			"valid email, invalid password",
-			map[string]string{"username": email, "password": fmt.Sprintf("not-%s", password)},
+			map[string]string{"username": user.Email, "password": fmt.Sprintf("not-%s", user.Password)},
 			http.StatusUnauthorized,
 		},
 	}
 
 	for _, tt := range requestTests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(url.Values{"username": {username}, "password": {password}}.Encode()))
+			r := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(url.Values{"username": {user.Username}, "password": {user.Password}}.Encode()))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			if tt.isHTMX {
 				r.Header.Set("HX-Request", "true")
