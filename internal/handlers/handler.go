@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"log/slog"
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/jacoboneill/SecureBin/internal/contextkeys"
 	"github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/static"
 )
@@ -39,14 +41,33 @@ func (h *Handler) NewRouter() http.Handler {
 }
 
 func (h *Handler) RenderTemplate(w http.ResponseWriter, r *http.Request, component templ.Component, statusCode int) {
-	var buf bytes.Buffer
-	if err := component.Render(r.Context(), &buf); err != nil {
-		slog.Error("template failed to render", "err", err)
+	ctx := r.Context()
+
+	errorHelper := func(msg string, err error) {
+		slog.Error(msg, "err", err)
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
+	}
+
+	if _, ok := ctx.Value(contextkeys.UserCtxKey).(*db.User); !ok {
+		if cookie, err := r.Cookie("session"); err == nil {
+			session, err := h.queries.GetSession(ctx, cookie.Value)
+			if err == nil {
+				user, err := h.queries.GetUser(ctx, session.UserID)
+				if err == nil {
+					ctx = context.WithValue(ctx, contextkeys.UserCtxKey, &user)
+				}
+			}
+		}
+	}
+
+	var buf bytes.Buffer
+	if err := component.Render(ctx, &buf); err != nil {
+		errorHelper("template failed to render", err)
+		return
 	}
 	w.WriteHeader(statusCode)
 	if _, err := buf.WriteTo(w); err != nil {
-		slog.Error("buffer failed to write to HTTP response writer", "err", err)
-		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		errorHelper("buffer failed to write to HTTP response writer", err)
+		return
 	}
 }

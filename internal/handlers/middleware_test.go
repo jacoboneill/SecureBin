@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/jacoboneill/SecureBin/internal/contextkeys"
 	"github.com/jacoboneill/SecureBin/internal/testutil"
 )
 

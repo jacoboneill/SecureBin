@@ -7,14 +7,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/jacoboneill/SecureBin/internal/contextkeys"
 	"github.com/jacoboneill/SecureBin/internal/db"
-)
-
-type contextKey string
-
-const (
-	userIDCtxKey  contextKey = "userID"
-	isAdminCtxKey contextKey = "isAdmin"
 )
 
 func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
