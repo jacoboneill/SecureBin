@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jacoboneill/SecureBin/internal/contextkeys"
+	"github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/internal/testutil"
 )
 
@@ -94,9 +95,9 @@ func TestAuthMiddleware(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
 		r.AddCookie(&http.Cookie{Name: "session", Value: user.SessionID})
 
-		var capturedUserID int64
+		var capturedUser *db.User
 		h.auth(func(w http.ResponseWriter, r *http.Request) {
-			capturedUserID, _ = r.Context().Value(userIDCtxKey).(int64)
+			capturedUser, _ = r.Context().Value(contextkeys.UserCtxKey).(*db.User)
 			w.WriteHeader(http.StatusOK)
 		})(w, r)
 
@@ -112,8 +113,12 @@ func TestAuthMiddleware(t *testing.T) {
 			t.Errorf("did not expect redirect, got redirected to %s", location)
 		}
 
-		if capturedUserID != user.ID {
-			t.Errorf("expected userID %d in context, got %d", user.ID, capturedUserID)
+		if capturedUser == nil {
+			t.Fatal("expected user in context, got nil")
+		}
+
+		if capturedUser.ID != user.ID {
+			t.Errorf("expected userID %d in context, got %d", user.ID, capturedUser.ID)
 		}
 	})
 }
@@ -159,10 +164,9 @@ func TestAdmin(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.AddCookie(&http.Cookie{Name: "session", Value: tt.user.SessionID})
 
-			var capturedIsAdmin bool
-			var isAdminSet bool
+			var capturedUser *db.User
 			h.auth(h.admin(func(w http.ResponseWriter, r *http.Request) {
-				capturedIsAdmin, isAdminSet = r.Context().Value(isAdminCtxKey).(bool)
+				capturedUser, _ = r.Context().Value(contextkeys.UserCtxKey).(*db.User)
 				w.WriteHeader(http.StatusOK)
 			}))(w, r)
 
@@ -171,11 +175,11 @@ func TestAdmin(t *testing.T) {
 			}
 
 			if tt.expectedStatus == http.StatusOK {
-				if !isAdminSet {
-					t.Error("expected isAdmin to be set in context")
+				if capturedUser == nil {
+					t.Fatal("expected user in context, got nil")
 				}
-				if !capturedIsAdmin {
-					t.Error("expected isAdmin to be true in context")
+				if !capturedUser.IsAdmin {
+					t.Error("expected user to be admin")
 				}
 			}
 		})

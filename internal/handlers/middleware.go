@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -39,33 +38,25 @@ func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), userIDCtxKey, session.UserID)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		user, err := h.queries.GetUser(ctx, session.UserID)
+		if err != nil {
+			slog.Warn("user not found but session ID found", "err", err)
+			http.Error(w, "something went wrong", http.StatusInternalServerError)
+			return
+		}
+
+		next.ServeHTTP(w, r.WithContext(context.WithValue(ctx, contextkeys.UserCtxKey, &user)))
 	}
 }
 
 func (h *Handler) admin(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		httpError := func() {
-			http.Error(w, "something went wrong", http.StatusInternalServerError)
-		}
-
 		ctx := r.Context()
-		userID, ok := ctx.Value(userIDCtxKey).(int64)
-		if !ok {
-			slog.Error("failed to get user ID from context")
-			httpError()
-			return
-		}
 
-		user, err := h.queries.GetUser(ctx, userID)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				slog.Warn("user not found", "userID", userID)
-			} else {
-				slog.Warn("query failed", "query", "GetUser", "err", err)
-				httpError()
-			}
+		user, ok := ctx.Value(contextkeys.UserCtxKey).(*db.User)
+		if !ok {
+			slog.Error("user not found in context. please ensure to use auth middleware before admin")
+			http.Error(w, "something went wrong", http.StatusInternalServerError)
 			return
 		}
 
@@ -75,6 +66,6 @@ func (h *Handler) admin(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		next.ServeHTTP(w, r.WithContext(context.WithValue(ctx, isAdminCtxKey, true)))
+		next.ServeHTTP(w, r)
 	}
 }

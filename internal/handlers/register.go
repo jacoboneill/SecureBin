@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/jacoboneill/SecureBin/internal/contextkeys"
 	"github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/internal/templates"
 	"golang.org/x/crypto/bcrypt"
@@ -74,7 +75,11 @@ func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		var sqliteErr *sqlite.Error
 		errors.As(err, &sqliteErr)
 		if sqliteErr.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE {
-			callback("registrar attempted to register user that already exists", "User already exists", true, http.StatusConflict, "registrar", r.Context().Value(userIDCtxKey), "registree", user.Email)
+			registrar := "nil"
+			if user, _ := r.Context().Value(contextkeys.UserCtxKey).(*db.User); user != nil {
+				registrar = user.Username
+			}
+			callback("registrar attempted to register user that already exists", "User already exists", true, http.StatusConflict, "registrar", registrar, "registree", user.Email)
 		} else {
 			registrationErrorCallback("RegisterUser query failed", err)
 		}
