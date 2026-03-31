@@ -35,6 +35,7 @@ Development is tracked using GitHub Issues and follows a docs-first TDD workflow
 │   ├── db/
 │   │   ├── migrations/         # DB table schemas, used by golang-migrate
 │   │   └── queries/            # SQLC query definitions (source of truth for internal/db/)
+│   ├── contextkeys/            # typed context key constants
 │   ├── templates/              # templ components and generated Go code
 │   ├── testutil/               # utilities for tests
 │   └── handlers/               # HTTP handlers
@@ -187,18 +188,18 @@ internal/templates/
 
 `base.page.templ` defines a shared layout component that page components wrap themselves with. Fragment components are standalone — they return only the HTML snippet that HTMX swaps into an existing page.
 
-Templates are called directly from handlers as typed Go functions:
+Templates are rendered via `RenderTemplate`, which resolves auth state from context (set by middleware) or falls back to a cookie/session lookup for public routes. It stores a `*db.User` on the context via `contextkeys.UserCtxKey`, which `base.page.templ` reads to render the nav bar:
 
 ```go
 // Page handler
 func (h *Handler) PageLogin(w http.ResponseWriter, r *http.Request) {
-    templates.Login("").Render(r.Context(), w)
+    h.RenderTemplate(w, r, templates.Login(""), http.StatusOK)
 }
 
 // Action handler returning a fragment
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
     // ... validate login ...
-    templates.LoginCallback("invalid username or password").Render(r.Context(), w)
+    h.RenderTemplate(w, r, templates.LoginCallback("invalid username or password"), http.StatusUnauthorized)
 }
 ```
 

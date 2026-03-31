@@ -38,6 +38,7 @@ go run ./cmd/server
 │   ├── db/
 │   │   ├── migrations/         # DB table schemas, used by golang-migrate
 │   │   └── queries/            # SQLC query definitions (source of truth for internal/db/)
+│   ├── contextkeys/            # typed context key constants
 │   ├── templates/              # templ components and generated Go code
 │   ├── testutil/               # utilities for tests
 │   └── handlers/               # HTTP handlers
