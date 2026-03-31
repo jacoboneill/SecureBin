@@ -1,0 +1,45 @@
+package templates
+
+templ registerForm(msg string, isError bool) {
+	<form id="register-form" hx-post="/admin/register" hx-target="#register-form" hx-swap="outerHTML" class="bg-white shadow rounded-lg p-8 space-y-4">
+		<div>
+			<label for="email" class="sr-only">Email</label>
+			<input type="email" id="email" name="email" placeholder="Email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+		</div>
+		<div>
+			<label for="username" class="sr-only">Username</label>
+			<input type="text" id="username" name="username" placeholder="Username" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+		</div>
+		<div>
+			<label for="password" class="sr-only">Password</label>
+			<input type="password" id="password" name="password" placeholder="Password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+		</div>
+		<div class="flex items-center gap-2">
+			<input type="checkbox" id="isAdmin" name="isAdmin" class="h-4 w-4 accent-blue-600 cursor-pointer"/>
+			<label for="isAdmin" class="text-sm text-gray-700 cursor-pointer">Admin</label>
+		</div>
+		<button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors cursor-pointer">Register</button>
+		if msg != "" {
+			if isError {
+				<p class="text-red-500 text-sm text-center">{ msg }</p>
+			} else {
+				<p class="text-green-600 text-sm text-center">{ msg }</p>
+			}
+		}
+	</form>
+}
+
+templ Register() {
+	@Base("Admin | Register") {
+		<div class="flex items-center justify-center min-h-[80vh]">
+			<div class="w-full max-w-sm">
+				<h1 class="text-2xl font-bold text-center mb-6">Register User</h1>
+				@registerForm("", false)
+			</div>
+		</div>
+	}
+}
+
+templ RegisterCallback(msg string, isError bool) {
+	@registerForm(msg, isError)
+}
