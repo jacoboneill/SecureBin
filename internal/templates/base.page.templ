@@ -1,19 +1,50 @@
 package templates
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/jacoboneill/SecureBin/internal/contextkeys"
+	"github.com/jacoboneill/SecureBin/internal/db"
+)
 
-templ Base(title, custom_styles string) {
+templ navLink(href, label string) {
+	<li>
+		<a href={ templ.SafeURL(href) } class="text-sm text-gray-600 hover:text-gray-900">{ label }</a>
+	</li>
+}
+
+templ navigation() {
+	{{ user, _ := ctx.Value(contextkeys.UserCtxKey).(*db.User) }}
+	<nav class="bg-white shadow">
+		<div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
+			<a href="/" class="text-lg font-bold text-blue-600">SecureBin</a>
+			<ul class="flex items-center gap-4">
+				if user == nil {
+					@navLink("/login", "Login")
+				} else {
+					@navLink("/p/new", "New Paste")
+					if user.IsAdmin {
+						@navLink("/admin/register", "Register New User")
+					}
+					@navLink(fmt.Sprintf("/%s", user.Username), "Account")
+					<li><button hx-post="/logout" class="text-sm text-gray-600 hover:text-gray-900 cursor-pointer">Logout</button></li>
+				}
+			</ul>
+		</div>
+	</nav>
+}
+
+templ Base(title string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
-			<title>SecureBin - { title }</title>
-			<link rel="stylesheet" href="/static/css/reset.css"/>
-			<link rel="stylesheet" href="/static/css/styles.css"/>
-			<link rel="stylesheet" href={ fmt.Sprintf("/static/css/%s", custom_styles) }/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>SecureBin | { title }</title>
+			<script src="https://cdn.tailwindcss.com"></script>
 		</head>
-		<body>
-			<main>
+		<body class="bg-gray-50 text-gray-900 min-h-screen">
+			@navigation()
+			<main class="max-w-3xl mx-auto px-4 py-8">
 				{ children... }
 			</main>
 			<script src="https://four.htmx.org/js/htmx.js"></script>
