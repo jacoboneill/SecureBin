@@ -235,9 +235,9 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 | Status | Description                     |
 | ------ | ------------------------------- |
-| `200`  | Successfully ended user session |
-| `401`  | User not authenticated          |
-| `500`  | Internal server error           |
+| `200`  | Successfully ended user session                                  |
+| `303`  | Redirect to `/login` if not authenticated or on protected route  |
+| `500`  | Internal server error                                            |
 
 ### `POST /admin/register`
 
