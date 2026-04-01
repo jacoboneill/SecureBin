@@ -95,9 +95,21 @@ func TestAuthMiddleware(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
 		r.AddCookie(&http.Cookie{Name: "session", Value: user.SessionID})
 
-		var capturedUser *db.User
 		h.auth(func(w http.ResponseWriter, r *http.Request) {
-			capturedUser, _ = r.Context().Value(contextkeys.UserCtxKey).(*db.User)
+			capturedUser, ok := r.Context().Value(contextkeys.UserCtxKey).(*db.User)
+			if !ok {
+				t.Errorf("expected user in context")
+			}
+			if capturedUser.ID != user.ID {
+				t.Errorf("expected userID %d in context, got %d", user.ID, capturedUser.ID)
+			}
+			capturedSessionID, ok := r.Context().Value(contextkeys.SessionIDCtxKey).(string)
+			if !ok {
+				t.Errorf("expected session id in context")
+			}
+			if capturedSessionID != user.SessionID {
+				t.Errorf("expected sessionID %q in context, got %q", user.SessionID, capturedSessionID)
+			}
 			w.WriteHeader(http.StatusOK)
 		})(w, r)
 
@@ -111,14 +123,6 @@ func TestAuthMiddleware(t *testing.T) {
 
 		if location != "" {
 			t.Errorf("did not expect redirect, got redirected to %s", location)
-		}
-
-		if capturedUser == nil {
-			t.Fatal("expected user in context, got nil")
-		}
-
-		if capturedUser.ID != user.ID {
-			t.Errorf("expected userID %d in context, got %d", user.ID, capturedUser.ID)
 		}
 	})
 }

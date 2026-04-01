@@ -47,6 +47,8 @@ func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		ctx = context.WithValue(ctx, contextkeys.UserCtxKey, &user)
+		ctx = context.WithValue(ctx, contextkeys.SessionIDCtxKey, session.ID)
 		next.ServeHTTP(w, r.WithContext(context.WithValue(ctx, contextkeys.UserCtxKey, &user)))
 	}
 }
