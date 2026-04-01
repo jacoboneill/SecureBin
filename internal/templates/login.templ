@@ -1,5 +1,9 @@
 package templates
 
+templ LoginCallback(errMsg string) {
+	<p class="text-red-500 text-sm text-center">{ errMsg } </p>
+}
+
 templ Login(errMsg string) {
 	@Base("Login") {
 		<div class="flex items-center justify-center min-h-[80vh]">
