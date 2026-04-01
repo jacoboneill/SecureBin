@@ -168,27 +168,20 @@ Handlers are tested using integration tests with an in-memory SQLite database. A
 
 Templates use [templ](https://github.com/a-h/templ), a type-safe HTML templating language for Go. Templ files (`.templ`) compile into Go functions, providing compile-time type checking and IDE support. Generated `_templ.go` files live alongside their `.templ` source and are committed to version control. Regenerate with `templ generate`.
 
-All templates live in a single `internal/templates/` package. File names encode the template type via suffix:
-
-- `*.page.templ` — full HTML page components served by `Page` handlers
-- `*.frag.templ` — partial HTML components served by `Handle` handlers, swapped into the page by HTMX
+All templates live in a single `internal/templates/` package. Each feature gets one `.templ` file containing both its page and fragment components. Shared private helper components (e.g. `registerForm`) stay in their feature file.
 
 ```
 internal/templates/
-├── base.page.templ
-├── feed.page.templ
-├── login.page.templ
-├── login_callback.frag.templ
-├── new_paste.page.templ
-├── create_paste.frag.templ
-├── register.page.templ
-├── register_callback.frag.templ
+├── base.templ
+├── feed.templ
+├── login.templ
+├── register.templ
 └── ...
 ```
 
-`base.page.templ` defines a shared layout component that page components wrap themselves with. Fragment components are standalone — they return only the HTML snippet that HTMX swaps into an existing page.
+`base.templ` defines a shared layout component that page components wrap themselves with, and a `navigation` component that renders the nav bar based on auth state read from context.
 
-Templates are rendered via `RenderTemplate`, which resolves auth state from context (set by middleware) or falls back to a cookie/session lookup for public routes. It stores a `*db.User` on the context via `contextkeys.UserCtxKey`, which `base.page.templ` reads to render the nav bar:
+Templates are rendered via `RenderTemplate`, which resolves auth state from context (set by middleware) or falls back to a cookie/session lookup for public routes. It stores a `*db.User` on the context via `contextkeys.UserCtxKey`, which `base.templ` reads to render the nav bar:
 
 ```go
 // Page handler
