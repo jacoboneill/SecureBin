@@ -50,9 +50,9 @@ go run ./cmd/server
 
 ## Documentation
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -- project design and
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): project design and
   handler conventions
-- [`docs/API.md`](docs/API.md) -- full route reference
+- [`docs/API.md`](docs/API.md): full route reference
 
 ## License
 
