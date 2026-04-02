@@ -1,12 +1,13 @@
-package handlers
+package handler
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jacoboneill/SecureBin/internal/contextkeys"
+	"github.com/jacoboneill/SecureBin/internal/contextkey"
 	"github.com/jacoboneill/SecureBin/internal/db"
+	"github.com/jacoboneill/SecureBin/internal/service"
 	"github.com/jacoboneill/SecureBin/internal/testutil"
 )
 
@@ -62,7 +63,7 @@ func assertLoginRedirect(t testing.TB, w *httptest.ResponseRecorder) {
 
 func TestAuthMiddleware(t *testing.T) {
 	queries, _ := testutil.SetupTestDB(t)
-	h := New(queries)
+	h := NewHandler(service.NewService(queries))
 
 	user := testutil.SeedUser(t, queries, testutil.RegisterUserParams{
 		Username: "admin",
@@ -96,14 +97,14 @@ func TestAuthMiddleware(t *testing.T) {
 		r.AddCookie(&http.Cookie{Name: "session", Value: user.SessionID})
 
 		h.auth(func(w http.ResponseWriter, r *http.Request) {
-			capturedUser, ok := r.Context().Value(contextkeys.UserCtxKey).(*db.User)
+			capturedUser, ok := r.Context().Value(contextkey.UserCtxKey).(*db.User)
 			if !ok {
 				t.Errorf("expected user in context")
 			}
 			if capturedUser.ID != user.ID {
 				t.Errorf("expected userID %d in context, got %d", user.ID, capturedUser.ID)
 			}
-			capturedSessionID, ok := r.Context().Value(contextkeys.SessionIDCtxKey).(string)
+			capturedSessionID, ok := r.Context().Value(contextkey.SessionIDCtxKey).(string)
 			if !ok {
 				t.Errorf("expected session id in context")
 			}
@@ -129,7 +130,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 func TestAdmin(t *testing.T) {
 	queries, _ := testutil.SetupTestDB(t)
-	h := New(queries)
+	h := NewHandler(service.NewService(queries))
 
 	admin := testutil.SeedUser(t, queries, testutil.RegisterUserParams{
 		Username: "admin",
@@ -170,7 +171,7 @@ func TestAdmin(t *testing.T) {
 
 			var capturedUser *db.User
 			h.auth(h.admin(func(w http.ResponseWriter, r *http.Request) {
-				capturedUser, _ = r.Context().Value(contextkeys.UserCtxKey).(*db.User)
+				capturedUser, _ = r.Context().Value(contextkey.UserCtxKey).(*db.User)
 				w.WriteHeader(http.StatusOK)
 			}))(w, r)
 

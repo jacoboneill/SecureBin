@@ -71,7 +71,7 @@ func SeedUser(t *testing.T, q *db.Queries, registerUserParams RegisterUserParams
 		t.Fatal("bcrypt failed to hash password")
 	}
 
-	user, err := q.RegisterUser(t.Context(), db.RegisterUserParams{
+	user, err := q.CreateUser(t.Context(), db.CreateUserParams{
 		Username:     registerUserParams.Username,
 		Email:        registerUserParams.Email,
 		PasswordHash: string(hashedPassword),

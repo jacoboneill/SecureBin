@@ -1,42 +1,40 @@
-package handlers
+package handler
 
 import (
 	"log/slog"
 	"net/http"
 
-	"github.com/jacoboneill/SecureBin/internal/contextkeys"
-	"github.com/jacoboneill/SecureBin/internal/db"
+	"github.com/jacoboneill/SecureBin/internal/contextkey"
 )
 
 func (h *Handler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	httpInternalServerError := func() {
+	internalServerError := func() {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 	}
 
-	sessionID, ok := ctx.Value(contextkeys.SessionIDCtxKey).(string)
+	sessionID, ok := ctx.Value(contextkey.SessionIDCtxKey).(string)
 	if !ok {
-		slog.Error("sessionID not found in context")
-		httpInternalServerError()
+		slog.Error("sessionID was not found in context")
+		internalServerError()
 		return
 	}
 
-	if err := h.queries.DeleteSession(ctx, sessionID); err != nil {
-		slog.Error("failed to delete session", "err", err)
-		httpInternalServerError()
+	if err := h.service.DeleteSession(ctx, sessionID); err != nil {
+		slog.Error("unable to delete session", "err", err)
+		internalServerError()
 		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:   "session",
+		Name:   sessionCookieName,
 		Value:  "",
 		Path:   "/",
 		MaxAge: -1,
 	})
 
-	user, _ := ctx.Value(contextkeys.UserCtxKey).(*db.User)
-	if user != nil {
+	if user, _ := h.service.GetUserFromContext(ctx); user != nil {
 		slog.Info("user logged out", "username", user.Username, "sessionID", sessionID)
 	} else {
 		slog.Info("user logged out", "sessionID", sessionID)
