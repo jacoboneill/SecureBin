@@ -41,7 +41,7 @@ go run ./cmd/server
 │   ├── contextkeys/            # typed context key constants
 │   ├── templates/              # templ components and generated Go code
 │   ├── testutil/               # utilities for tests
-│   └── handlers/               # HTTP handlers
+│   └── handler/                # HTTP handlers
 ├── static/                     # Client-side assets (JS, images)
 ├── sqlc.yaml                   # SQLC configuration
 ├── go.mod
