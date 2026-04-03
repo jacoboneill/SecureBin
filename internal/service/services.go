@@ -6,9 +6,9 @@ import (
 )
 
 type Service struct {
-	queries *db.Queries
+	queries db.Querier
 }
 
-func NewService(queries *db.Queries) *Service {
+func NewService(queries db.Querier) *Service {
 	return &Service{queries: queries}
 }
