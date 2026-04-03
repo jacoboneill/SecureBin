@@ -34,9 +34,9 @@ func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 
 		warnErrorHelper := func(msg, sessionID string, err, warningError error) {
 			if errors.Is(err, warningError) {
-				slog.Warn(msg, "err", err, "sessionid", sessionID)
+				slog.Warn(msg, "err", err, "sessionID", sessionID)
 			} else {
-				slog.Error(msg, "err", err, "sessionid", sessionID)
+				slog.Error(msg, "err", err, "sessionID", sessionID)
 			}
 		}
 
