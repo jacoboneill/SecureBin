@@ -1,3 +1,4 @@
+// Package service implements the business logic between handlers and the database
 package service
 
 import (

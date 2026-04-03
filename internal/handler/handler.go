@@ -1,3 +1,4 @@
+// Package handler provides HTTP handlers and routing for SecureBin
 package handler
 
 import (
