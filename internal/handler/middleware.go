@@ -17,7 +17,9 @@ func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
 			next(w, r)
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, "invalid request type")
+			if _, err := fmt.Fprint(w, "invalid request type"); err != nil {
+				slog.Error("failed to write to response writer", "err", err)
+			}
 			return
 		}
 	}
