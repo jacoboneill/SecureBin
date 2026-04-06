@@ -35,7 +35,7 @@ test:
 	@make -j2 test/go test/js
 
 test/go: build/templ build/sqlc
-	go test ./internal/service/...
+	go test ./internal/service/... ./internal/handler/...
 
 test/js: static/js/node_modules
 	cd static/js && npm run test
