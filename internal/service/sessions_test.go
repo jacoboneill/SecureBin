@@ -11,6 +11,8 @@ import (
 	"github.com/jacoboneill/SecureBin/internal/service"
 )
 
+var ErrDBMock = errors.New("mock db error")
+
 type QuerierMock struct {
 	db.Querier
 	Calls int
@@ -21,10 +23,24 @@ type GetSessionMock struct {
 	AvailableSessionID string
 }
 
+type CreateSessionMock struct {
+	QuerierMock
+	AvailableUserID int64
+}
+
 func (m *GetSessionMock) GetSession(ctx context.Context, id string) (db.Session, error) {
 	m.Calls++
 	if id != m.AvailableSessionID {
 		return db.Session{}, sql.ErrNoRows
+	}
+
+	return db.Session{}, nil
+}
+
+func (m *CreateSessionMock) CreateSession(ctx context.Context, arg db.CreateSessionParams) (db.Session, error) {
+	m.Calls++
+	if arg.UserID != m.AvailableUserID {
+		return db.Session{}, ErrDBMock
 	}
 
 	return db.Session{}, nil
@@ -70,6 +86,30 @@ func TestValidateSession(t *testing.T) {
 			service := service.NewService(mock)
 
 			err := service.ValidateSession(t.Context(), tt.sessionID)
+			AssertErrorsEqual(t, tt.expectedErr, err)
+
+			AssertCallCountsEqual(t, tt.expectedCalls, mock.Calls)
+		})
+	}
+}
+
+func TestCreateSession(t *testing.T) {
+	const availableUserID = 1
+	tests := []struct {
+		name          string
+		userID        int64
+		expectedErr   error
+		expectedCalls int
+	}{
+		{"valid user ID", availableUserID, nil, 1},
+		{"invalid user ID", availableUserID + 1, service.ErrSessionCreationFailed, 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &CreateSessionMock{AvailableUserID: availableUserID}
+			service := service.NewService(mock)
+
+			_, err := service.CreateSession(t.Context(), tt.userID)
 			AssertErrorsEqual(t, tt.expectedErr, err)
 
 			AssertCallCountsEqual(t, tt.expectedCalls, mock.Calls)
