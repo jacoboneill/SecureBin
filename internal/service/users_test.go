@@ -64,10 +64,10 @@ func TestAddUser(t *testing.T) {
 		expectedError error
 		expectedCalls int
 	}{
-		{"valid user request", Modify(t, duplicateUsername), Modify(t, duplicateEmail), password, nil, 1},
-		{"duplicate username", duplicateUsername, Modify(t, duplicateEmail), password, service.ErrUserAlreadyExists, 1},
-		{"duplicate email", Modify(t, duplicateUsername), duplicateEmail, password, service.ErrUserAlreadyExists, 1},
-		{"password too long", Modify(t, duplicateUsername), Modify(t, duplicateEmail), strings.Repeat("a", bcryptLimit), service.ErrPasswordHashCreation, 0},
+		{"valid user request", Modify(duplicateUsername), Modify(duplicateEmail), password, nil, 1},
+		{"duplicate username", duplicateUsername, Modify(duplicateEmail), password, service.ErrUserAlreadyExists, 1},
+		{"duplicate email", Modify(duplicateUsername), duplicateEmail, password, service.ErrUserAlreadyExists, 1},
+		{"password too long", Modify(duplicateUsername), Modify(duplicateEmail), strings.Repeat("a", bcryptLimit), service.ErrPasswordHashCreation, 0},
 	}
 
 	for _, tt := range tests {
@@ -116,9 +116,9 @@ func TestAuthenticateUser(t *testing.T) {
 	}{
 		{"valid username and password", validUser.Username, validPassword, nil, 1},
 		{"valid email and password", validUser.Email, validPassword, nil, 1},
-		{"invalid username, valid password", Modify(t, validUser.Username), validPassword, service.ErrUserNotFound, 1},
-		{"valid username, invalid password", validUser.Username, Modify(t, validPassword), service.ErrInvalidPassword, 1},
-		{"invalid username, invalid password", Modify(t, validUser.Username), Modify(t, validPassword), service.ErrUserNotFound, 1},
+		{"invalid username, valid password", Modify(validUser.Username), validPassword, service.ErrUserNotFound, 1},
+		{"valid username, invalid password", validUser.Username, Modify(validPassword), service.ErrInvalidPassword, 1},
+		{"invalid username, invalid password", Modify(validUser.Username), Modify(validPassword), service.ErrUserNotFound, 1},
 	}
 
 	for _, tt := range tests {

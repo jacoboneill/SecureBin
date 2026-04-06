@@ -22,7 +22,7 @@ type ResultMock struct {
 func (r ResultMock) LastInsertId() (int64, error) { return 0, nil }
 func (r ResultMock) RowsAffected() (int64, error) { return r.rowsAffected, nil }
 
-func Modify(t testing.TB, in string) string {
+func Modify(in string) string {
 	return fmt.Sprintf("%s1", in)
 }
 
