@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/internal/service"
@@ -11,7 +12,7 @@ import (
 
 type GetSessionMock struct {
 	QuerierMock
-	ValidSessionID string
+	ValidSession *db.Session
 }
 
 type CreateSessionMock struct {
@@ -26,11 +27,11 @@ type DeleteSessionMock struct {
 
 func (m *GetSessionMock) GetSession(ctx context.Context, id string) (db.Session, error) {
 	m.Calls++
-	if id != m.ValidSessionID {
+	if id != m.ValidSession.ID {
 		return db.Session{}, sql.ErrNoRows
 	}
 
-	return db.Session{}, nil
+	return *m.ValidSession, nil
 }
 
 func (m *CreateSessionMock) CreateSession(ctx context.Context, arg db.CreateSessionParams) (db.Session, error) {
@@ -52,20 +53,24 @@ func (m *DeleteSessionMock) DeleteSession(ctx context.Context, id string) (sql.R
 }
 
 func TestValidateSession(t *testing.T) {
-	const validSessionID = "123"
+	validSession := &db.Session{
+		ID:        "123",
+		UserID:    0,
+		CreatedAt: time.Time{},
+	}
 	tests := []struct {
 		name          string
 		sessionID     string
 		expectedErr   error
 		expectedCalls int
 	}{
-		{"valid session ID", validSessionID, nil, 1},
-		{"invalid session ID", Modify(validSessionID), service.ErrSessionNotFound, 1},
+		{"valid session ID", validSession.ID, nil, 1},
+		{"invalid session ID", Modify(validSession.ID), service.ErrSessionNotFound, 1},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mock := &GetSessionMock{ValidSession: validSessionID}
+			mock := &GetSessionMock{ValidSession: validSession}
 			service := service.NewService(mock)
 
 			err := service.ValidateSession(t.Context(), tt.sessionID)
