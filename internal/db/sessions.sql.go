@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createSession = `-- name: CreateSession :one
@@ -27,13 +28,12 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 	return i, err
 }
 
-const deleteSession = `-- name: DeleteSession :exec
+const deleteSession = `-- name: DeleteSession :execresult
 DELETE FROM sessions WHERE id = ?
 `
 
-func (q *Queries) DeleteSession(ctx context.Context, id string) error {
-	_, err := q.db.ExecContext(ctx, deleteSession, id)
-	return err
+func (q *Queries) DeleteSession(ctx context.Context, id string) (sql.Result, error) {
+	return q.db.ExecContext(ctx, deleteSession, id)
 }
 
 const getSession = `-- name: GetSession :one

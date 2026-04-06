@@ -6,5 +6,5 @@ RETURNING *;
 -- name: GetSession :one
 SELECT * FROM sessions WHERE id = ? LIMIT 1;
 
--- name: DeleteSession :exec
+-- name: DeleteSession :execresult
 DELETE FROM sessions WHERE id = ?;

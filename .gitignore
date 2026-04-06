@@ -27,3 +27,6 @@ go.work.sum
 
 # javascript
 package-lock.json
+
+# codebook
+codebook.toml

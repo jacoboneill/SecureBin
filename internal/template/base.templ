@@ -1,8 +1,8 @@
-package templates
+package template
 
 import (
 	"fmt"
-	"github.com/jacoboneill/SecureBin/internal/contextkeys"
+	"github.com/jacoboneill/SecureBin/internal/contextkey"
 	"github.com/jacoboneill/SecureBin/internal/db"
 )
 
@@ -13,7 +13,7 @@ templ navLink(href, label string) {
 }
 
 templ navigation() {
-	{{ user, _ := ctx.Value(contextkeys.UserCtxKey).(*db.User) }}
+	{{ user, _ := ctx.Value(contextkey.UserCtxKey).(*db.User) }}
 	<nav class="bg-white shadow">
 		<div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
 			<a href="/" class="text-lg font-bold text-blue-600">SecureBin</a>
@@ -25,8 +25,10 @@ templ navigation() {
 					if user.IsAdmin {
 						@navLink("/admin/register", "Register New User")
 					}
-					@navLink(fmt.Sprintf("/%s", user.Username), "Account")
-					<li><button hx-post="/logout" class="text-sm text-gray-600 hover:text-gray-900 cursor-pointer">Logout</button></li>
+					@navLink(fmt.Sprintf("/@%s", user.Username), "Account")
+					<li>
+						<button hx-post="/logout" class="text-sm text-gray-600 hover:text-gray-900 cursor-pointer">Logout</button>
+					</li>
 				}
 			</ul>
 		</div>

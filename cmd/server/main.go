@@ -12,7 +12,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	db "github.com/jacoboneill/SecureBin/internal/db"
-	"github.com/jacoboneill/SecureBin/internal/handlers"
+	"github.com/jacoboneill/SecureBin/internal/handler"
+	"github.com/jacoboneill/SecureBin/internal/service"
 	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"
 )
@@ -40,14 +41,14 @@ func seed(queries *db.Queries) {
 	const defaultPassword = "password"
 
 	// Create admin user
-	hashed_password, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
 	if err != nil {
 		slog.Error("bcrypt failed to hash password", "err", err)
 	}
-	queries.RegisterUser(context.Background(), db.RegisterUserParams{
+	queries.CreateUser(context.Background(), db.CreateUserParams{
 		Username:     "admin",
 		Email:        "admin@example.com",
-		PasswordHash: string(hashed_password),
+		PasswordHash: string(hashedPassword),
 		IsAdmin:      true,
 	})
 }
@@ -74,7 +75,7 @@ func main() {
 	slog.Info("migrations applied", "sourceURL", migrationSourceURL)
 
 	queries := db.New(conn)
-	h := handlers.New(queries)
+	h := handler.NewHandler(service.NewService(queries))
 	mux := h.NewRouter()
 	slog.Info("router initialised")
 

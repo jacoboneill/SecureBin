@@ -6,4 +6,6 @@ sql:
     schema: "internal/db/migrations"
     gen:
       go:
+        package: "db"
         out: "internal/db"
+        emit_interface: true

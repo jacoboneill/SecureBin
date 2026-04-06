@@ -22,7 +22,7 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 | `200`  | Renders `Feed` page   |
 | `500`  | Internal server error |
 
-### `GET /{username}`
+### `GET /@{username}`
 
 > Public account view.
 
@@ -233,11 +233,11 @@ Authentication is cookie-based. Protected routes check for valid session cookie 
 
 **Responses:**
 
-| Status | Description                     |
-| ------ | ------------------------------- |
-| `200`  | Successfully ended user session                                  |
-| `303`  | Redirect to `/login` if not authenticated or on protected route  |
-| `500`  | Internal server error                                            |
+| Status | Description                                                     |
+| ------ | --------------------------------------------------------------- |
+| `200`  | Successfully ended user session                                 |
+| `303`  | Redirect to `/login` if not authenticated or on protected route |
+| `500`  | Internal server error                                           |
 
 ### `POST /admin/register`
 

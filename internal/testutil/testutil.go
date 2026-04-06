@@ -1,3 +1,4 @@
+// Package testutil provides helpers for test database setup and seeding
 package testutil
 
 import (
@@ -29,7 +30,11 @@ func SetupTestDB(t *testing.T) (*db.Queries, *sql.DB) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { conn.Close() })
+	t.Cleanup(func() {
+		if err := conn.Close(); err != nil {
+			t.Fatal("failed to close database connection")
+		}
+	})
 
 	driver, err := sqlite.WithInstance(conn, &sqlite.Config{})
 	if err != nil {
@@ -71,7 +76,7 @@ func SeedUser(t *testing.T, q *db.Queries, registerUserParams RegisterUserParams
 		t.Fatal("bcrypt failed to hash password")
 	}
 
-	user, err := q.RegisterUser(t.Context(), db.RegisterUserParams{
+	user, err := q.CreateUser(t.Context(), db.CreateUserParams{
 		Username:     registerUserParams.Username,
 		Email:        registerUserParams.Email,
 		PasswordHash: string(hashedPassword),

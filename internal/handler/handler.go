@@ -1,4 +1,5 @@
-package handlers
+// Package handler provides HTTP handlers and routing for SecureBin
+package handler
 
 import (
 	"bytes"
@@ -7,19 +8,18 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/jacoboneill/SecureBin/internal/contextkeys"
+	"github.com/jacoboneill/SecureBin/internal/contextkey"
 	"github.com/jacoboneill/SecureBin/internal/db"
+	"github.com/jacoboneill/SecureBin/internal/service"
 	"github.com/jacoboneill/SecureBin/static"
 )
 
 type Handler struct {
-	queries *db.Queries
+	service *service.Service
 }
 
-func New(queries *db.Queries) *Handler {
-	return &Handler{
-		queries: queries,
-	}
+func NewHandler(service *service.Service) *Handler {
+	return &Handler{service: service}
 }
 
 func (h *Handler) NewRouter() http.Handler {
@@ -41,22 +41,20 @@ func (h *Handler) NewRouter() http.Handler {
 	return mux
 }
 
-func (h *Handler) RenderTemplate(w http.ResponseWriter, r *http.Request, component templ.Component, statusCode int) {
+func (h *Handler) RenderTemplate(w http.ResponseWriter, r *http.Request, component templ.Component, status int) {
 	ctx := r.Context()
-
 	errorHelper := func(msg string, err error) {
 		slog.Error(msg, "err", err)
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 	}
 
-	if _, ok := ctx.Value(contextkeys.UserCtxKey).(*db.User); !ok {
+	if _, ok := ctx.Value(contextkey.UserCtxKey).(*db.User); !ok {
 		if cookie, err := r.Cookie("session"); err == nil {
-			session, err := h.queries.GetSession(ctx, cookie.Value)
+			sessionID := cookie.Value
+			user, err := h.service.GetUserFromSession(ctx, sessionID)
 			if err == nil {
-				user, err := h.queries.GetUser(ctx, session.UserID)
-				if err == nil {
-					ctx = context.WithValue(ctx, contextkeys.UserCtxKey, &user)
-				}
+				ctx = context.WithValue(ctx, contextkey.UserCtxKey, user)
+				ctx = context.WithValue(ctx, contextkey.SessionIDCtxKey, sessionID)
 			}
 		}
 	}
@@ -66,7 +64,7 @@ func (h *Handler) RenderTemplate(w http.ResponseWriter, r *http.Request, compone
 		errorHelper("template failed to render", err)
 		return
 	}
-	w.WriteHeader(statusCode)
+	w.WriteHeader(status)
 	if _, err := buf.WriteTo(w); err != nil {
 		errorHelper("buffer failed to write to HTTP response writer", err)
 		return

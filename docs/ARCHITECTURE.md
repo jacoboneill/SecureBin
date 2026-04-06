@@ -10,7 +10,7 @@ The server is written in [Go](https://go.dev/) using the standard library's [`ne
 | ---------------------- | ----------------------------------------------------------------------------------------------- |
 | Language               | [Go](https://go.dev/)                                                                           |
 | Templating             | [templ](https://github.com/a-h/templ)                                                           |
-| Styling                | [Tailwind CSS](https://tailwindcss.com/) (CDN)                                                   |
+| Styling                | [Tailwind CSS](https://tailwindcss.com/) (CDN)                                                  |
 | Interactivity          | [HTMX v4](https://four.htmx.org/)                                                               |
 | Client-side encryption | WebCrypto API (AES-256-GCM, PBKDF2)                                                             |
 | Database               | [SQLite](https://sqlite.org/) via [`modernc.org/sqlite`](https://pkg.go.dev/modernc.org/sqlite) |
@@ -38,7 +38,7 @@ Development is tracked using GitHub Issues and follows a docs-first TDD workflow
 │   ├── contextkeys/            # typed context key constants
 │   ├── templates/              # templ components and generated Go code
 │   ├── testutil/               # utilities for tests
-│   └── handlers/               # HTTP handlers
+│   └── handler/                # HTTP handlers
 ├── static/                     # Client-side assets (JS, images)
 ├── sqlc.yaml                   # SQLC configuration
 ├── go.mod
@@ -195,4 +195,3 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
     h.RenderTemplate(w, r, templates.LoginCallback("invalid username or password"), http.StatusUnauthorized)
 }
 ```
-

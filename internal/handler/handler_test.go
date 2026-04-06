@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"context"
@@ -7,9 +7,10 @@ import (
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/jacoboneill/SecureBin/internal/contextkeys"
+	"github.com/jacoboneill/SecureBin/internal/contextkey"
 	"github.com/jacoboneill/SecureBin/internal/db"
-	"github.com/jacoboneill/SecureBin/internal/templates"
+	"github.com/jacoboneill/SecureBin/internal/service"
+	"github.com/jacoboneill/SecureBin/internal/template"
 	"github.com/jacoboneill/SecureBin/internal/testutil"
 )
 
@@ -57,7 +58,7 @@ func TestRenderTemplateNavigation(t *testing.T) {
 			useContext: true,
 			expectedNav: []navItem{
 				{`a[href="/p/new"]`, "New Paste"},
-				{`a[href="/testuser"]`, "Account"},
+				{`a[href="/@testuser"]`, "Account"},
 				{`button[hx-post="/logout"]`, "Logout"},
 			},
 		},
@@ -73,7 +74,7 @@ func TestRenderTemplateNavigation(t *testing.T) {
 			expectedNav: []navItem{
 				{`a[href="/p/new"]`, "New Paste"},
 				{`a[href="/admin/register"]`, "Register New User"},
-				{`a[href="/admin"]`, "Account"},
+				{`a[href="/@admin"]`, "Account"},
 				{`button[hx-post="/logout"]`, "Logout"},
 			},
 		},
@@ -88,7 +89,7 @@ func TestRenderTemplateNavigation(t *testing.T) {
 			useContext: false,
 			expectedNav: []navItem{
 				{`a[href="/p/new"]`, "New Paste"},
-				{`a[href="/cookieuser"]`, "Account"},
+				{`a[href="/@cookieuser"]`, "Account"},
 				{`button[hx-post="/logout"]`, "Logout"},
 			},
 		},
@@ -97,7 +98,7 @@ func TestRenderTemplateNavigation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			queries, _ := testutil.SetupTestDB(t)
-			h := New(queries)
+			h := NewHandler(service.NewService(queries))
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -106,14 +107,14 @@ func TestRenderTemplateNavigation(t *testing.T) {
 				seeded := testutil.SeedUser(t, queries, *tt.user)
 				if tt.useContext {
 					dbUser := db.User{ID: seeded.ID, Username: seeded.Username, IsAdmin: tt.user.IsAdmin}
-					ctx := context.WithValue(r.Context(), contextkeys.UserCtxKey, &dbUser)
+					ctx := context.WithValue(r.Context(), contextkey.UserCtxKey, &dbUser)
 					r = r.WithContext(ctx)
 				} else {
 					r.AddCookie(&http.Cookie{Name: "session", Value: seeded.SessionID})
 				}
 			}
 
-			h.RenderTemplate(w, r, templates.Base("test"), http.StatusOK)
+			h.RenderTemplate(w, r, template.Base("test"), http.StatusOK)
 
 			doc, err := goquery.NewDocumentFromReader(w.Body)
 			if err != nil {

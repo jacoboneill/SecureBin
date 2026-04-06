@@ -9,6 +9,38 @@ import (
 	"context"
 )
 
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (username, email, password_hash, is_admin)
+VALUES (?, ?, ?, ?)
+RETURNING id, username, email, password_hash, is_admin, created_at
+`
+
+type CreateUserParams struct {
+	Username     string
+	Email        string
+	PasswordHash string
+	IsAdmin      bool
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Username,
+		arg.Email,
+		arg.PasswordHash,
+		arg.IsAdmin,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.IsAdmin,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, username, email, password_hash, is_admin, created_at FROM users WHERE id = ? LIMIT 1
 `
@@ -33,38 +65,6 @@ SELECT id, username, email, password_hash, is_admin, created_at FROM users WHERE
 
 func (q *Queries) GetUserByEmailOrUsername(ctx context.Context, identifier string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmailOrUsername, identifier)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Email,
-		&i.PasswordHash,
-		&i.IsAdmin,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const registerUser = `-- name: RegisterUser :one
-INSERT INTO users (username, email, password_hash, is_admin)
-VALUES (?, ?, ?, ?)
-RETURNING id, username, email, password_hash, is_admin, created_at
-`
-
-type RegisterUserParams struct {
-	Username     string
-	Email        string
-	PasswordHash string
-	IsAdmin      bool
-}
-
-func (q *Queries) RegisterUser(ctx context.Context, arg RegisterUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, registerUser,
-		arg.Username,
-		arg.Email,
-		arg.PasswordHash,
-		arg.IsAdmin,
-	)
 	var i User
 	err := row.Scan(
 		&i.ID,
