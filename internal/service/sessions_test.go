@@ -3,7 +3,6 @@ package service_test
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"testing"
 
 	"github.com/jacoboneill/SecureBin/internal/db"
@@ -61,7 +60,7 @@ func TestValidateSession(t *testing.T) {
 		expectedCalls int
 	}{
 		{"valid session ID", availableSessionID, nil, 1},
-		{"invalid session ID", fmt.Sprintf("%s2", availableSessionID), service.ErrSessionNotFound, 1},
+		{"invalid session ID", Modify(t, availableSessionID), service.ErrSessionNotFound, 1},
 	}
 
 	for _, tt := range tests {
@@ -110,7 +109,7 @@ func TestDeleteSession(t *testing.T) {
 		expectedCalls int
 	}{
 		{"valid session ID", availableSessionID, nil, 1},
-		{"invalid session ID", fmt.Sprintf("%s2", availableSessionID), service.ErrSessionNotFound, 1},
+		{"invalid session ID", Modify(t, availableSessionID), service.ErrSessionNotFound, 1},
 	}
 
 	for _, tt := range tests {
