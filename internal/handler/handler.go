@@ -22,27 +22,18 @@ func NewHandler(service *service.Service) *Handler {
 	return &Handler{service: service}
 }
 
-//	type Handler struct {
-//		queries *db.Queries
-//	}
-//
-//	func New(queries *db.Queries) *Handler {
-//		return &Handler{
-//			queries: queries,
-//		}
-//	}
 func (h *Handler) NewRouter() http.Handler {
 	mux := http.NewServeMux()
 
 	// Pages
-	// mux.HandleFunc("GET /", h.PageFeed)
+	mux.HandleFunc("GET /", h.PageFeed)
 	mux.HandleFunc("GET /login", h.PageLogin)
-	// mux.HandleFunc("GET /admin/register", h.auth(h.admin(h.PageRegister)))
+	mux.HandleFunc("GET /admin/register", h.auth(h.admin(h.PageRegister)))
 
 	// Actions
 	mux.HandleFunc("POST /login", h.htmx(h.HandleLogin))
-	// mux.HandleFunc("POST /logout", h.htmx(h.auth(h.HandleLogout)))
-	// mux.HandleFunc("POST /admin/register", h.htmx(h.auth(h.admin(h.HandleRegister))))
+	mux.HandleFunc("POST /logout", h.htmx(h.auth(h.HandleLogout)))
+	mux.HandleFunc("POST /admin/register", h.htmx(h.auth(h.admin(h.HandleRegister))))
 
 	// Static
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
