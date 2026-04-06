@@ -62,12 +62,20 @@ func (s *Service) AuthenticateUser(ctx context.Context, username, password strin
 func (s *Service) GetUserFromSession(ctx context.Context, sessionID string) (*db.User, error) {
 	session, err := s.queries.GetSession(ctx, sessionID)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrSessionNotFound
+		} else {
+			return nil, err
+		}
 	}
 
 	user, err := s.queries.GetUser(ctx, session.UserID)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrUserNotFound
+		} else {
+			return nil, err
+		}
 	}
 
 	return &user, nil
