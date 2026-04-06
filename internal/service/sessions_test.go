@@ -18,6 +18,13 @@ type QuerierMock struct {
 	Calls int
 }
 
+type ResultMock struct {
+	rowsAffected int64
+}
+
+func (r ResultMock) LastInsertId() (int64, error) { return 0, nil }
+func (r ResultMock) RowsAffected() (int64, error) { return r.rowsAffected, nil }
+
 type GetSessionMock struct {
 	QuerierMock
 	AvailableSessionID string
@@ -26,6 +33,11 @@ type GetSessionMock struct {
 type CreateSessionMock struct {
 	QuerierMock
 	AvailableUserID int64
+}
+
+type DeleteSessionMock struct {
+	QuerierMock
+	AvailableSessionID string
 }
 
 func (m *GetSessionMock) GetSession(ctx context.Context, id string) (db.Session, error) {
@@ -44,6 +56,15 @@ func (m *CreateSessionMock) CreateSession(ctx context.Context, arg db.CreateSess
 	}
 
 	return db.Session{}, nil
+}
+
+func (m *DeleteSessionMock) DeleteSession(ctx context.Context, id string) (sql.Result, error) {
+	m.Calls++
+	if id != m.AvailableSessionID {
+		return ResultMock{0}, nil
+	}
+
+	return ResultMock{1}, nil
 }
 
 func AssertErrorsEqual(t testing.TB, expectedErr, capturedErr error) {
@@ -110,6 +131,31 @@ func TestCreateSession(t *testing.T) {
 			service := service.NewService(mock)
 
 			_, err := service.CreateSession(t.Context(), tt.userID)
+			AssertErrorsEqual(t, tt.expectedErr, err)
+
+			AssertCallCountsEqual(t, tt.expectedCalls, mock.Calls)
+		})
+	}
+}
+
+func TestDeleteSession(t *testing.T) {
+	const availableSessionID = "123"
+	tests := []struct {
+		name          string
+		sessionID     string
+		expectedErr   error
+		expectedCalls int
+	}{
+		{"valid session ID", availableSessionID, nil, 1},
+		{"invalid session ID", fmt.Sprintf("%s2", availableSessionID), service.ErrSessionNotFound, 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &DeleteSessionMock{AvailableSessionID: availableSessionID}
+			service := service.NewService(mock)
+
+			err := service.DeleteSession(t.Context(), tt.sessionID)
 			AssertErrorsEqual(t, tt.expectedErr, err)
 
 			AssertCallCountsEqual(t, tt.expectedCalls, mock.Calls)
