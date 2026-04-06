@@ -30,6 +30,17 @@ type GetUserByEmailOrUsernameMock struct {
 	ValidUser *db.User
 }
 
+type GetUserMock struct {
+	QuerierMock
+	ValidUser *db.User
+}
+
+type GetUserFromSessionMock struct {
+	QuerierMock
+	ValidUser    *db.User
+	ValidSession *db.Session
+}
+
 func (m *CreateUserMock) CreateUser(ctx context.Context, arg db.CreateUserParams) (db.User, error) {
 	m.Calls++
 	if arg.Username == m.DuplicateUsername || arg.Email == m.DuplicateEmail {
@@ -46,6 +57,24 @@ func (m *GetUserByEmailOrUsernameMock) GetUserByEmailOrUsername(ctx context.Cont
 	}
 
 	return *m.ValidUser, nil
+}
+
+func (m *GetUserMock) GetUser(ctx context.Context, id int64) (db.User, error) {
+	m.Calls++
+	if id == m.ValidUser.ID {
+		return *m.ValidUser, nil
+	}
+	return db.User{}, sql.ErrNoRows
+}
+
+func (m *GetUserFromSessionMock) GetSession(ctx context.Context, id string) (db.Session, error) {
+	m.Calls++
+	return (&GetSessionMock{ValidSession: m.ValidSession}).GetSession(ctx, id)
+}
+
+func (m *GetUserFromSessionMock) GetUser(ctx context.Context, id int64) (db.User, error) {
+	m.Calls++
+	return (&GetUserMock{ValidUser: m.ValidUser}).GetUser(ctx, id)
 }
 
 func TestAddUser(t *testing.T) {
@@ -131,6 +160,53 @@ func TestAuthenticateUser(t *testing.T) {
 			AssertCallCountsEqual(t, tt.expectedCalls, mock.Calls)
 			if err == nil {
 				AssertUser(t, user, validUser)
+			}
+		})
+	}
+}
+
+func TestGetUserFromSession(t *testing.T) {
+	var (
+		validUser = db.User{
+			ID:           1,
+			Username:     "test",
+			Email:        "test@example.com",
+			PasswordHash: "",
+			IsAdmin:      false,
+			CreatedAt:    time.Time{},
+		}
+		validSession = db.Session{
+			ID:        "123",
+			UserID:    validUser.ID,
+			CreatedAt: time.Time{},
+		}
+	)
+
+	orphanedSession := validSession
+	orphanedSession.UserID = validUser.ID + 1
+
+	tests := []struct {
+		name          string
+		sessionID     string
+		mockSession   *db.Session
+		expectedError error
+		expectedCalls int
+	}{
+		{"valid session", validSession.ID, &validSession, nil, 2},
+		{"invalid session", Modify(validSession.ID), &validSession, service.ErrSessionNotFound, 1},
+		{"orphaned session", orphanedSession.ID, &orphanedSession, service.ErrUserNotFound, 2},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &GetUserFromSessionMock{ValidSession: tt.mockSession, ValidUser: &validUser}
+			service := service.NewService(mock)
+
+			user, err := service.GetUserFromSession(t.Context(), tt.sessionID)
+			AssertErrorsEqual(t, tt.expectedError, err)
+			AssertCallCountsEqual(t, tt.expectedCalls, mock.Calls)
+			if err == nil {
+				AssertUser(t, user, &validUser)
 			}
 		})
 	}
