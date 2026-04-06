@@ -60,7 +60,7 @@ func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		ctx = context.WithValue(ctx, contextkey.SessionIDCtxKey, sessionID)
-		ctx = context.WithValue(ctx, contextkey.UserCtxKey, &user)
+		ctx = context.WithValue(ctx, contextkey.UserCtxKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
