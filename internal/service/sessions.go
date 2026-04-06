@@ -37,5 +37,19 @@ func (s *Service) CreateSession(ctx context.Context, userID int64) (string, erro
 }
 
 func (s *Service) DeleteSession(ctx context.Context, sessionID string) error {
-	return s.queries.DeleteSession(ctx, sessionID)
+	res, err := s.queries.DeleteSession(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return ErrSessionNotFound
+	}
+
+	return nil
 }
