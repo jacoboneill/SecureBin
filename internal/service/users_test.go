@@ -98,7 +98,7 @@ func TestAuthenticateUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	validUser := db.User{
+	validUser := &db.User{
 		ID:           0,
 		Username:     "test",
 		Email:        "test@example.com",
@@ -123,14 +123,14 @@ func TestAuthenticateUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mock := &GetUserByEmailOrUsernameMock{ValidUser: &validUser}
+			mock := &GetUserByEmailOrUsernameMock{ValidUser: validUser}
 			service := service.NewService(mock)
 
 			user, err := service.AuthenticateUser(t.Context(), tt.username, tt.password)
 			AssertErrorsEqual(t, tt.expectedError, err)
 			AssertCallCountsEqual(t, tt.expectedCalls, mock.Calls)
 			if err == nil {
-				AssertUser(t, user, &validUser)
+				AssertUser(t, user, validUser)
 			}
 		})
 	}
