@@ -9,7 +9,6 @@ import (
 	"github.com/jacoboneill/SecureBin/internal/contextkey"
 	"github.com/jacoboneill/SecureBin/internal/db"
 	"golang.org/x/crypto/bcrypt"
-	"modernc.org/sqlite"
 	sqlite3 "modernc.org/sqlite/lib"
 )
 
@@ -21,6 +20,11 @@ var (
 	ErrInvalidPassword      = errors.New("username and password do not match")
 )
 
+type sqliteError interface {
+	Code() int
+	Error() string
+}
+
 func (s *Service) AddUser(ctx context.Context, username, email, password string, isAdmin bool) (*db.User, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -29,7 +33,7 @@ func (s *Service) AddUser(ctx context.Context, username, email, password string,
 
 	user, err := s.queries.CreateUser(ctx, db.CreateUserParams{Username: username, Email: email, PasswordHash: string(passwordHash), IsAdmin: isAdmin})
 	if err != nil {
-		var sqliteErr *sqlite.Error
+		var sqliteErr sqliteError
 		if errors.As(err, &sqliteErr) && sqliteErr.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE {
 			return nil, ErrUserAlreadyExists
 		}
