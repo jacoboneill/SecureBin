@@ -58,7 +58,7 @@ func TestRenderTemplateNavigation(t *testing.T) {
 			useContext: true,
 			expectedNav: []navItem{
 				{`a[href="/p/new"]`, "New Paste"},
-				{`a[href="/testuser"]`, "Account"},
+				{`a[href="/@testuser"]`, "Account"},
 				{`button[hx-post="/logout"]`, "Logout"},
 			},
 		},
@@ -74,7 +74,7 @@ func TestRenderTemplateNavigation(t *testing.T) {
 			expectedNav: []navItem{
 				{`a[href="/p/new"]`, "New Paste"},
 				{`a[href="/admin/register"]`, "Register New User"},
-				{`a[href="/admin"]`, "Account"},
+				{`a[href="/@admin"]`, "Account"},
 				{`button[hx-post="/logout"]`, "Logout"},
 			},
 		},
@@ -89,7 +89,7 @@ func TestRenderTemplateNavigation(t *testing.T) {
 			useContext: false,
 			expectedNav: []navItem{
 				{`a[href="/p/new"]`, "New Paste"},
-				{`a[href="/cookieuser"]`, "Account"},
+				{`a[href="/@cookieuser"]`, "Account"},
 				{`button[hx-post="/logout"]`, "Logout"},
 			},
 		},
