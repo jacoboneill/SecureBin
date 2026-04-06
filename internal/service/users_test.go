@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jacoboneill/SecureBin/internal/contextkey"
 	"github.com/jacoboneill/SecureBin/internal/db"
 	"github.com/jacoboneill/SecureBin/internal/service"
 	"golang.org/x/crypto/bcrypt"
@@ -207,6 +208,34 @@ func TestGetUserFromSession(t *testing.T) {
 			AssertCallCountsEqual(t, tt.expectedCalls, mock.Calls)
 			if err == nil {
 				AssertUser(t, user, &validUser)
+			}
+		})
+	}
+}
+
+func TestGetUserFromContext(t *testing.T) {
+	tests := []struct {
+		name             string
+		user             *db.User
+		isUserIDInCtxKey bool
+		expectedError    error
+	}{
+		{"user from context", &db.User{ID: 0, Username: "test", Email: "test@example.com", PasswordHash: "", IsAdmin: false, CreatedAt: time.Time{}}, true, nil},
+		{"invalid user from context", &db.User{}, false, service.ErrUserNotFound},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := t.Context()
+			if tt.isUserIDInCtxKey {
+				ctx = context.WithValue(ctx, contextkey.UserCtxKey, tt.user)
+			}
+
+			service := service.NewService(struct{ db.Querier }{})
+			user, err := service.GetUserFromContext(ctx)
+			AssertErrorsEqual(t, tt.expectedError, err)
+			if err == nil {
+				AssertUser(t, tt.user, user)
 			}
 		})
 	}
