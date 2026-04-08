@@ -16,10 +16,11 @@ import (
 
 type Handler struct {
 	service *service.Service
+	slog    *slog.Logger
 }
 
 func NewHandler(service *service.Service) *Handler {
-	return &Handler{service: service}
+	return &Handler{service: service, slog: slog.Default()}
 }
 
 func (h *Handler) NewRouter() http.Handler {
@@ -44,7 +45,7 @@ func (h *Handler) NewRouter() http.Handler {
 func (h *Handler) RenderTemplate(w http.ResponseWriter, r *http.Request, component templ.Component, status int) {
 	ctx := r.Context()
 	errorHelper := func(msg string, err error) {
-		slog.Error(msg, "err", err)
+		h.slog.Error(msg, "err", err)
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 	}
 

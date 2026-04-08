@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 
 	"github.com/jacoboneill/SecureBin/internal/contextkey"
@@ -18,7 +17,7 @@ func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := fmt.Fprint(w, "invalid request type"); err != nil {
-				slog.Error("failed to write to response writer", "err", err)
+				h.slog.Error("failed to write to response writer", "err", err)
 			}
 			return
 		}
@@ -34,9 +33,9 @@ func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 
 		warnErrorHelper := func(msg, sessionID string, err, warningError error) {
 			if errors.Is(err, warningError) {
-				slog.Warn(msg, "err", err, "sessionID", sessionID)
+				h.slog.Warn(msg, "err", err, "sessionID", sessionID)
 			} else {
-				slog.Error(msg, "err", err, "sessionID", sessionID)
+				h.slog.Error(msg, "err", err, "sessionID", sessionID)
 			}
 		}
 
@@ -79,13 +78,13 @@ func (h *Handler) admin(next http.HandlerFunc) http.HandlerFunc {
 
 		user, err := h.service.GetUserFromContext(ctx)
 		if err != nil {
-			slog.Error("failed to get user from context", "err", err)
+			h.slog.Error("failed to get user from context", "err", err)
 			internalServerError()
 			return
 		}
 
 		if !user.IsAdmin {
-			slog.Warn("unauthorized user attempted to access admin page", "user", user.Username)
+			h.slog.Warn("unauthorized user attempted to access admin page", "user", user.Username)
 			forbidden()
 			return
 		}

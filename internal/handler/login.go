@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 
 	"github.com/jacoboneill/SecureBin/internal/service"
@@ -55,14 +54,14 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validateFormInput(username, password); err != nil {
-		slog.Warn("malformed form input", "err", err)
+		h.slog.Warn("malformed form input", "err", err)
 		authError()
 		return
 	}
 
 	user, err := h.service.AuthenticateUser(ctx, username, password)
 	if err != nil {
-		slog.Warn("authentication failed", "err", err)
+		h.slog.Warn("authentication failed", "err", err)
 		if errors.Is(err, service.ErrUserNotFound) || errors.Is(err, service.ErrInvalidPassword) {
 			authError()
 		} else {
@@ -73,7 +72,7 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	sessionID, err := h.service.CreateSession(ctx, user.ID)
 	if err != nil {
-		slog.Error("failed to create Session", "err", err)
+		h.slog.Error("failed to create Session", "err", err)
 		serverError()
 		return
 	}
@@ -89,5 +88,5 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("HX-Redirect", "/")
 	w.WriteHeader(http.StatusOK)
-	slog.Info("successful login", "user", user.Username, "sessionID", sessionID)
+	h.slog.Info("successful login", "user", user.Username, "sessionID", sessionID)
 }

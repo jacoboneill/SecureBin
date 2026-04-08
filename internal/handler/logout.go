@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/jacoboneill/SecureBin/internal/contextkey"
@@ -16,13 +15,13 @@ func (h *Handler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 
 	sessionID, ok := ctx.Value(contextkey.SessionIDCtxKey).(string)
 	if !ok {
-		slog.Error("sessionID was not found in context")
+		h.slog.Error("sessionID was not found in context")
 		internalServerError()
 		return
 	}
 
 	if err := h.service.DeleteSession(ctx, sessionID); err != nil {
-		slog.Error("unable to delete session", "err", err)
+		h.slog.Error("unable to delete session", "err", err)
 		internalServerError()
 		return
 	}
@@ -35,9 +34,9 @@ func (h *Handler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if user, _ := h.service.GetUserFromContext(ctx); user != nil {
-		slog.Info("user logged out", "username", user.Username, "sessionID", sessionID)
+		h.slog.Info("user logged out", "username", user.Username, "sessionID", sessionID)
 	} else {
-		slog.Info("user logged out", "sessionID", sessionID)
+		h.slog.Info("user logged out", "sessionID", sessionID)
 	}
 
 	w.Header().Set("HX-Refresh", "true")
