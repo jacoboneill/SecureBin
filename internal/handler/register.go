@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 
 	"github.com/jacoboneill/SecureBin/internal/service"
@@ -23,7 +22,7 @@ func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	)
 
 	renderErr := func(msg string, status int, slogArgs ...any) {
-		slog.Warn(msg, slogArgs...)
+		h.slog.Warn(msg, slogArgs...)
 		h.RenderTemplate(w, r, template.RegisterCallback(msg, true), status)
 	}
 
@@ -54,6 +53,6 @@ func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Info("new user added", "user", user)
+	h.slog.Info("new user added", "user", user)
 	h.RenderTemplate(w, r, template.RegisterCallback(fmt.Sprintf("User %s registered successfully", user.Email), false), http.StatusOK)
 }
