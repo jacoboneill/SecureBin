@@ -27,14 +27,14 @@ func (h *Handler) NewRouter() http.Handler {
 	mux := http.NewServeMux()
 
 	// Pages
-	mux.HandleFunc("GET /", h.PageFeed)
-	mux.HandleFunc("GET /login", h.PageLogin)
-	mux.HandleFunc("GET /admin/register", h.auth(h.admin(h.PageRegister)))
+	mux.HandleFunc("GET /", h.log(h.PageFeed))
+	mux.HandleFunc("GET /login", h.log(h.PageLogin))
+	mux.HandleFunc("GET /admin/register", h.log(h.auth(h.admin(h.PageRegister))))
 
 	// Actions
-	mux.HandleFunc("POST /login", h.htmx(h.HandleLogin))
-	mux.HandleFunc("POST /logout", h.htmx(h.auth(h.HandleLogout)))
-	mux.HandleFunc("POST /admin/register", h.htmx(h.auth(h.admin(h.HandleRegister))))
+	mux.HandleFunc("POST /login", h.log(h.htmx(h.HandleLogin)))
+	mux.HandleFunc("POST /logout", h.log(h.htmx(h.auth(h.HandleLogout))))
+	mux.HandleFunc("POST /admin/register", h.log(h.htmx(h.auth(h.admin(h.HandleRegister)))))
 
 	// Static
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))

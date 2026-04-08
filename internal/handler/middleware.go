@@ -10,6 +10,13 @@ import (
 	"github.com/jacoboneill/SecureBin/internal/service"
 )
 
+func (h *Handler) log(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		h.slog.Info("http request", "method", r.Method, "path", r.URL.Path)
+		next(w, r)
+	}
+}
+
 func (h *Handler) htmx(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("HX-Request") == "true" {
